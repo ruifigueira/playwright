@@ -41,6 +41,7 @@ type RecorderMessage = { type: 'recorder' } & (
 );
 
 declare global {
+  let serviceWorker: ServiceWorker;
   let _mockPort: PortMock;
   function getPage(tabId: number): Promise<Page>;
   function _onAttach(tabId: number, port: Port, underTest?: boolean): Promise<void>;
@@ -90,7 +91,7 @@ export const test = contextTest.extend<CrxTestArgs>({
     const { context } = await launchPersistent({
       headless,
       args: [
-        headless ? `--headless=new` : '',
+        ...(headless ? [`--headless=new`] : []),
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ]
@@ -112,7 +113,16 @@ export const test = contextTest.extend<CrxTestArgs>({
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
 
     // wait for initialization
-    await waitFor(() => worker.evaluate(() => !!chrome?.tabs?.query));
+    await worker.evaluate(() => new Promise<void>((resolve, reject) => {
+      if (serviceWorker.state !== 'activated') {
+        serviceWorker.addEventListener('statechange', () => {
+          if (serviceWorker.state === 'activated') resolve();
+        });
+        serviceWorker.addEventListener('error', reject);
+      } else {
+        resolve();
+      }
+    }));
 
     await use(worker);
   },
