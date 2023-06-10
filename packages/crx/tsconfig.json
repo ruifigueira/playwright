@@ -6,6 +6,7 @@
     "skipLibCheck": false,
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "strict": true,
     "module": "ESNext",
     "moduleResolution": "Node",
@@ -26,7 +27,6 @@
       "playwright-core/lib/*": ["../playwright-core/src/*"],
       "@playwright/test/lib/*": ["../playwright-test/src/*"],
       "@playwright-core/*": ["../playwright-core/src/*"],
-      "playwright-core/*": ["../playwright-core/*"],
     }
   },
   "include": ["src"],

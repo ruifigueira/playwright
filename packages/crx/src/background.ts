@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import './polyfills/dependencies';
+import './shims/global';
+
 import type { Port } from './crx/crxPlaywright';
 import { getOrCreatePage, getPage } from './crx/crxPlaywright';
-import { setUnderTest } from './polyfills/utils';
+import { setUnderTest } from '@playwright-core/utils';
 
 async function _onAttach(tabId: number, port: Port, underTest?: boolean) {
   if (underTest) setUnderTest();

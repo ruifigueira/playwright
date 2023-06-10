@@ -13,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-nocheck
-function noop() {}
 
-process.versions = { node: '1.0' };
-process.exit = noop;
-process.getMaxListeners = () => 10;
-process.setMaxListeners = noop;
-process.platform = 'linux';
-process.hrtime = () => [Math.round(Date.now() / 1000), 0];
+export default {
+  builtinModules: [],
+};

@@ -17,7 +17,7 @@ import type { IRecorderApp } from '@playwright-core/server/recorder/recorderApp'
 import type { Source, CallLog } from '@recorder/recorderTypes';
 import { EventEmitter } from 'events';
 import type { EventData } from '@recorder/recorderTypes';
-import { ManualPromise, raceAgainstTimeout } from '../polyfills/utils';
+import { ManualPromise, raceAgainstTimeout } from '@playwright-core/utils';
 import type { Recorder } from '@playwright-core/server/recorder';
 import type { Port } from './crxPlaywright';
 

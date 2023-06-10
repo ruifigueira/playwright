@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 function noop() {}
 
-export const spawn = noop;
-export const spawnSync = noop;
-export const execSync = noop;
+export const createConnection = noop;
+export const isIP = noop;
 
 export default {
-  spawn,
-  spawnSync,
-  execSync,
+  createConnection,
+  isIP,
 };

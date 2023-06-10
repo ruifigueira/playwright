@@ -16,39 +16,43 @@
 
 import path from 'path';
 import { defineConfig } from 'vite';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    nodePolyfills({
-      exclude: ['child_process', 'crypto', 'path'],
-    }),
-  ],
   resolve: {
     alias: {
+
       '@playwright-core': path.resolve(__dirname, '../playwright-core/src'),
-      'child_process': path.resolve(__dirname, './src/polyfills/child_process'),
-      'crypto': path.resolve(__dirname, './src/polyfills/crypto'),
-      'path': path.resolve(__dirname, '../../node_modules/path-browserify'),
-      'playwright-core/lib/utils': path.resolve(__dirname, './src/polyfills/utils'),
+      'playwright-core/lib/server/deviceDescriptors': path.resolve(__dirname, '../playwright-core/src/server/deviceDescriptorsSource.json'),
+      'playwright-core/lib/utilsBundle': path.resolve(__dirname, '../playwright-core/bundles/utils/src/utilsBundleImpl'),
+      'playwright-core/lib/zipBundle': path.resolve(__dirname, '../playwright-core/bundles/zip/src/zipBundleImpl'),
+      'playwright-core/lib': path.resolve(__dirname, '../playwright-core/src'),
+
+      'child_process': path.resolve(__dirname, './src/shims/child_process'),
+      'dns': path.resolve(__dirname, './src/shims/dns'),
+      'module': path.resolve(__dirname, './src/shims/module'),
+      'net': path.resolve(__dirname, './src/shims/net'),
+      'readline': path.resolve(__dirname, './src/shims/readline'),
+      'tls': path.resolve(__dirname, './src/shims/tls'),
+
+      // browserfs
+      'fs': 'browserfs/dist/shims/fs',
+      'path': 'browserfs/dist/shims/path',
+
+      // readable-stream
+      'stream': path.resolve(__dirname, './node_modules/readable-stream'),
+
+      // browserify
+      'constants': 'constants-browserify',
+      'crypto': 'crypto-browserify',
+      'events': 'events',
+      'http': 'stream-http',
+      'https': 'https-browserify',
+      'os': 'os-browserify/browser',
+      'url': 'url',
+      'util': 'util',
+      'zlib': 'browserify-zlib',
     },
-  },
-  define: {
-    '__dirname': '"."',
-    // 'process.env.DEBUG': '"*"',
-    'process.env.PW_CODEGEN_NO_INSPECTOR': '1',
-    'require("module")': '{builtinModules:[]}',
-    'require("../deviceDescriptors")': require('../playwright-core/src/server/deviceDescriptorsSource.json'),
-    'require("../../../browsers.json")': require('../playwright-core/browsers.json'),
-    'require("./utilsBundleImpl")': 'self.utilsBundle',
-    'require("./zipBundleImpl")': '{}',
-    'require("../deviceDescriptorsSource.json")': '{}',
-    'require("../third_party/pixelmatch")': '{}',
-    'require("../third_party/diff_match_patch")': '{}',
-    'require("./../../package.json")': '{}',
-    'require("../../../package.json")': '{}',
-    'require("../playwright")': '{}',
   },
   build: {
     outDir: path.resolve(__dirname, '../playwright-core/lib/webpack/crx'),
@@ -69,12 +73,13 @@ export default defineConfig({
         assetFileNames: '[name].[ext]',
       },
     },
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      inject: [
-        path.resolve(__dirname, './src/polyfills/inject.ts')
+    commonjsOptions: {
+      include: [
+        path.resolve(__dirname, '../playwright-core/src/server/deviceDescriptors.js'),
+        path.resolve(__dirname, '../playwright-core/src/third_party/**/*.js'),
+        path.resolve(__dirname, '../playwright-core/bundles/utils/src/third_party/**/*.js'),
+        /node_modules/,
       ],
     }
-  }
+  },
 });
