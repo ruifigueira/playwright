@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { debug } from '../utilsBundle';
+import { debug } from 'playwright-core/lib/utilsBundle';
 import fs from 'fs';
 
 const debugLoggerColorMap = {

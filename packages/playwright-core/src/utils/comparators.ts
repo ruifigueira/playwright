@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { colors, jpegjs } from '../utilsBundle';
-const pixelmatch = require('../third_party/pixelmatch');
+import { colors } from 'playwright-core/lib/utilsBundle';
+import pixelmatch from '../third_party/pixelmatch';
 import { compare } from '../image_tools/compare';
-const { diff_match_patch, DIFF_INSERT, DIFF_DELETE, DIFF_EQUAL } = require('../third_party/diff_match_patch');
-import { PNG } from '../utilsBundle';
+import { diff_match_patch, DIFF_INSERT, DIFF_DELETE, DIFF_EQUAL } from '../third_party/diff_match_patch';
+import { PNG } from 'playwright-core/lib/utilsBundle';
 
 export type ImageComparatorOptions = { threshold?: number, maxDiffPixels?: number, maxDiffPixelRatio?: number, _comparator?: string };
 export type ComparatorResult = { diff?: Buffer; errorMessage: string; } | null;

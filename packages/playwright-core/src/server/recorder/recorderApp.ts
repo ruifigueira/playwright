@@ -22,7 +22,7 @@ import { EventEmitter } from 'events';
 import { serverSideCallMetadata } from '../instrumentation';
 import type { CallLog, EventData, Mode, Source } from '@recorder/recorderTypes';
 import { isUnderTest } from '../../utils';
-import { mime } from '../../utilsBundle';
+import { mime } from 'playwright-core/lib/utilsBundle';
 import { installAppIcon, syncLocalStorageWithSettings } from '../chromium/crApp';
 import { findChromiumChannel } from '../registry';
 import type { Recorder } from '../recorder';

@@ -21,7 +21,7 @@ import { Frame } from './frame';
 import { Worker } from './worker';
 import type { Headers, RemoteAddr, SecurityDetails, WaitForEventOptions } from './types';
 import fs from 'fs';
-import { mime } from '../utilsBundle';
+import { mime } from 'playwright-core/lib/utilsBundle';
 import { assert, isString, headersObjectToArray, isRegExp } from '../utils';
 import { ManualPromise, ScopedRace } from '../utils/manualPromise';
 import { Events } from './events';

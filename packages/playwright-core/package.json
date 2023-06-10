@@ -32,6 +32,7 @@
     "./lib/utils": "./lib/utils/index.js",
     "./lib/utilsBundle": "./lib/utilsBundle.js",
     "./lib/zipBundle": "./lib/zipBundle.js",
+    "./lib/server/deviceDescriptors": "./lib/server/deviceDescriptors.js",
     "./types/protocol": "./types/protocol.d.ts",
     "./types/structs": "./types/structs.d.ts"
   },

@@ -16,7 +16,7 @@
  */
 
 import path from 'path';
-import { PNG, jpegjs } from '../../utilsBundle';
+import { PNG, jpegjs } from 'playwright-core/lib/utilsBundle';
 import { splitErrorMessage } from '../../utils/stackTrace';
 import { assert, createGuid, debugAssert, headersArrayToObject } from '../../utils';
 import { hostPlatform } from '../../utils/hostPlatform';

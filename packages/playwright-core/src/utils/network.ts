@@ -18,8 +18,8 @@
 import http from 'http';
 import https from 'https';
 import type net from 'net';
-import { getProxyForUrl } from '../utilsBundle';
-import { HttpsProxyAgent } from '../utilsBundle';
+import { getProxyForUrl } from 'playwright-core/lib/utilsBundle';
+import { HttpsProxyAgent } from 'playwright-core/lib/utilsBundle';
 import * as URL from 'url';
 import type { URLMatch } from '../common/types';
 import { isString, isRegExp } from './rtti';

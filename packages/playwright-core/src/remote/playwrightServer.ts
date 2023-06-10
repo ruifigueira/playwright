@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { wsServer } from '../utilsBundle';
-import type { WebSocketServer } from '../utilsBundle';
+import { wsServer } from 'playwright-core/lib/utilsBundle';
+import type { WebSocketServer } from 'playwright-core/lib/utilsBundle';
 import type http from 'http';
 import type { Browser } from '../server/browser';
 import type { Playwright } from '../server/playwright';

@@ -19,8 +19,8 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import type { Command } from '../utilsBundle';
-import { program } from '../utilsBundle';
+import type { Command } from 'playwright-core/lib/utilsBundle';
+import { program } from 'playwright-core/lib/utilsBundle';
 import { runDriver, runServer, printApiJson, launchBrowserServer } from './driver';
 import { showTraceViewer } from '../server/trace/viewer/traceViewer';
 import * as playwright from '../..';
@@ -33,8 +33,7 @@ import { spawn } from 'child_process';
 import { wrapInASCIIBox, isLikelyNpxGlobal, assert } from '../utils';
 import type { Executable } from '../server';
 import { registry, writeDockerVersion } from '../server';
-
-const packageJSON = require('../../package.json');
+import packageJSON from '../../package.json';
 
 program
     .version('Version ' + (process.env.PW_CLI_DISPLAY_VERSION || packageJSON.version))

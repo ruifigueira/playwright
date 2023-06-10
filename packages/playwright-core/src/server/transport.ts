@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { ws } from '../utilsBundle';
-import type { WebSocket } from '../utilsBundle';
+import { ws } from 'playwright-core/lib/utilsBundle';
+import type { WebSocket } from 'playwright-core/lib/utilsBundle';
 import type { ClientRequest, IncomingMessage } from 'http';
 import type { Progress } from './progress';
 import { makeWaitForNextTask } from '../utils';

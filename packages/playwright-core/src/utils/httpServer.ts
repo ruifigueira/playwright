@@ -17,7 +17,7 @@
 import type http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { mime } from '../utilsBundle';
+import { mime } from 'playwright-core/lib/utilsBundle';
 import { assert } from './debug';
 import { createHttpServer } from './network';
 import { ManualPromise } from './manualPromise';

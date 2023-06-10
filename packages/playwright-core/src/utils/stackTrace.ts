@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
+import url from 'url';
 import path from 'path';
-import { parseStackTraceLine } from '../utilsBundle';
+import { StackUtils } from 'playwright-core/lib/utilsBundle';
 import { isUnderTest } from './';
 import type { StackFrame } from '@protocol/channels';
+
+const stackUtils = new StackUtils({ internals: StackUtils.nodeInternals() });
+const nodeInternals = StackUtils.nodeInternals();
+const nodeMajorVersion = +process.versions.node.split('.')[0];
 
 export function rewriteErrorMessage<E extends Error>(e: E, newMessage: string): E {
   const lines: string[] = (e.stack?.split('\n') || []).filter(l => l.startsWith('    at '));
@@ -122,6 +127,26 @@ export function splitErrorMessage(message: string): { name: string, message: str
   return {
     name: separationIdx !== -1 ? message.slice(0, separationIdx) : '',
     message: separationIdx !== -1 && separationIdx + 2 <= message.length ? message.substring(separationIdx + 2) : message,
+  };
+}
+
+export function parseStackTraceLine(line: string): StackFrame | null {
+  if (!process.env.PWDEBUGIMPL && nodeMajorVersion < 16 && nodeInternals.some(internal => internal.test(line)))
+    return null;
+  const frame = stackUtils.parseLine(line);
+  if (!frame)
+    return null;
+  if (!process.env.PWDEBUGIMPL && (frame.file?.startsWith('internal') || frame.file?.startsWith('node:')))
+    return null;
+  if (!frame.file)
+    return null;
+  // ESM files return file:// URLs, see here: https://github.com/tapjs/stack-utils/issues/60
+  const file = frame.file.startsWith('file://') ? url.fileURLToPath(frame.file) : path.resolve(process.cwd(), frame.file);
+  return {
+    file,
+    line: frame.line || 0,
+    column: frame.column || 0,
+    function: frame.function,
   };
 }
 

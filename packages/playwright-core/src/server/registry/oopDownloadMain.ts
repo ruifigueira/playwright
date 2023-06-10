@@ -15,7 +15,7 @@
  */
 
 import fs from 'fs';
-import { progress as ProgressBar } from '../../utilsBundle';
+import { progress as ProgressBar } from 'playwright-core/lib/utilsBundle';
 import { httpRequest } from '../../utils/network';
 import { ManualPromise } from '../../utils/manualPromise';
 

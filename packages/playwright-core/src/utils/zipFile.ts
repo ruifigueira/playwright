@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { yauzl } from '../zipBundle';
-import type { UnzipFile, Entry } from '../zipBundle';
+import { yauzl } from 'playwright-core/lib/zipBundle';
+import type { UnzipFile, Entry } from 'playwright-core/lib/zipBundle';
 
 export class ZipFile {
   private _fileName: string;

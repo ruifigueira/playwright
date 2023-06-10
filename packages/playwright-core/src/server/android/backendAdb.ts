@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { debug } from '../../utilsBundle';
+import { debug } from 'playwright-core/lib/utilsBundle';
 import type * as channels from '@protocol/channels';
 import * as net from 'net';
 import { EventEmitter } from 'events';

@@ -23,7 +23,7 @@
     },
     "esModuleInterop": true,
     "strict": true,
-    "allowJs": false,
+    "allowJs": true,
     "jsx": "react",
     "resolveJsonModule": true,
     "noEmit": true,

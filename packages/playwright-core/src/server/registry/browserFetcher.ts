@@ -22,9 +22,9 @@ import childProcess from 'child_process';
 import { getUserAgent } from '../../utils/userAgent';
 import { existsAsync } from '../../utils/fileUtils';
 import { debugLogger } from '../../common/debugLogger';
-import { extract } from '../../zipBundle';
+import { extract } from 'playwright-core/lib/zipBundle';
 import { ManualPromise } from '../../utils/manualPromise';
-import { colors } from '../../utilsBundle';
+import { colors } from 'playwright-core/lib/utilsBundle';
 
 export async function downloadBrowserWithProgressBar(title: string, browserDirectory: string, executablePath: string | undefined, downloadURLs: string[], downloadFileName: string, downloadConnectionTimeout: number): Promise<boolean> {
   if (await existsAsync(browserDirectory)) {

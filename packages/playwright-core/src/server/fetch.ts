@@ -26,7 +26,7 @@ import type { HTTPCredentials } from '../../types/types';
 import { TimeoutSettings } from '../common/timeoutSettings';
 import { getUserAgent } from '../utils/userAgent';
 import { assert, createGuid, monotonicTime } from '../utils';
-import { HttpsProxyAgent, SocksProxyAgent } from '../utilsBundle';
+import { HttpsProxyAgent, SocksProxyAgent } from 'playwright-core/lib/utilsBundle';
 import { BrowserContext } from './browserContext';
 import { CookieStore, domainMatches } from './cookieStore';
 import { MultipartFormData } from './formData';

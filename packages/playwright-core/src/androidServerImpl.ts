@@ -15,8 +15,8 @@
  */
 
 import type { LaunchAndroidServerOptions } from './client/types';
-import { ws } from './utilsBundle';
-import type { WebSocketEventEmitter } from './utilsBundle';
+import { ws } from 'playwright-core/lib/utilsBundle';
+import type { WebSocketEventEmitter } from 'playwright-core/lib/utilsBundle';
 import type { BrowserServer } from './client/browserType';
 import { createGuid } from './utils';
 import { createPlaywright } from './server/playwright';

@@ -18,7 +18,7 @@ import fs from 'fs';
 import type EventEmitter from 'events';
 import type { ClientSideCallMetadata, SerializedError, StackFrame } from '@protocol/channels';
 import type { SerializedClientSideCallMetadata, SerializedStack, SerializedStackFrame } from './isomorphic/traceUtils';
-import { yazl, yauzl } from '../zipBundle';
+import { yazl, yauzl } from 'playwright-core/lib/zipBundle';
 import { ManualPromise } from './manualPromise';
 import type { AfterActionTraceEvent, BeforeActionTraceEvent, TraceEvent } from '@trace/trace';
 import { calculateSha1 } from './crypto';

@@ -15,8 +15,8 @@
  */
 
 import type { LaunchServerOptions, Logger } from './client/types';
-import { ws } from './utilsBundle';
-import type { WebSocketEventEmitter } from './utilsBundle';
+import { ws } from 'playwright-core/lib/utilsBundle';
+import type { WebSocketEventEmitter } from 'playwright-core/lib/utilsBundle';
 import type { BrowserServerLauncher, BrowserServer } from './client/browserType';
 import { envObjectToArray } from './client/clientHelper';
 import { createGuid } from './utils';

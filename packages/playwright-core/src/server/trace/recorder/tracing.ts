@@ -40,7 +40,7 @@ import type { FrameSnapshot } from '@trace/snapshot';
 import type * as trace from '@trace/trace';
 import type { SnapshotterBlob, SnapshotterDelegate } from './snapshotter';
 import { Snapshotter } from './snapshotter';
-import { yazl } from '../../../zipBundle';
+import { yazl } from 'playwright-core/lib/zipBundle';
 import type { ConsoleMessage } from '../../console';
 
 const version: trace.VERSION = 4;

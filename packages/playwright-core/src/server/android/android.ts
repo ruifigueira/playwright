@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { debug } from '../../utilsBundle';
+import { debug } from 'playwright-core/lib/utilsBundle';
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import type * as stream from 'stream';
-import { wsReceiver, wsSender } from '../../utilsBundle';
+import { wsReceiver, wsSender } from 'playwright-core/lib/utilsBundle';
 import { createGuid, makeWaitForNextTask, isUnderTest } from '../../utils';
 import { removeFolders } from '../../utils/fileUtils';
 import type { BrowserOptions, BrowserProcess } from '../browser';

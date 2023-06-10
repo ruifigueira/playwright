@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { mime } from '../utilsBundle';
+import { mime } from 'playwright-core/lib/utilsBundle';
 import type * as channels from '@protocol/channels';
 
 export class MultipartFormData {
