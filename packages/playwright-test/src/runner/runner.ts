@@ -107,9 +107,9 @@ export class Runner {
     return await runWatchModeLoop(config);
   }
 
-  async uiAllTests(): Promise<FullResult['status']> {
+  async uiAllTests(options: { host?: string, port?: number }): Promise<FullResult['status']> {
     const config = this._config;
     webServerPluginsForConfig(config).forEach(p => config.plugins.push({ factory: p }));
-    return await runUIMode(config);
+    return await runUIMode(config, options);
   }
 }

@@ -26,12 +26,14 @@ import { Multiplexer } from './multiplexer';
 
 export async function createMergedReport(config: FullConfigInternal, dir: string, reporterDescriptions: ReporterDescription[], resolvePaths: boolean) {
   const shardFiles = await sortedShardFiles(dir);
+  if (shardFiles.length === 0)
+    throw new Error(`No report files found in ${dir}`);
   const events = await mergeEvents(dir, shardFiles);
   if (resolvePaths)
     patchAttachmentPaths(events, dir);
 
   const reporters = await createReporters(config, 'merge', reporterDescriptions);
-  const receiver = new TeleReporterReceiver(path.sep, new Multiplexer(reporters), config.config);
+  const receiver = new TeleReporterReceiver(path.sep, new Multiplexer(reporters), false, config.config);
 
   for (const event of events)
     await receiver.dispatch(event);
@@ -83,7 +85,9 @@ function mergeBeginEvents(beginEvents: JsonEvent[]): JsonEvent {
     configFile: undefined,
     globalTimeout: 0,
     maxFailures: 0,
-    metadata: {},
+    metadata: {
+      totalTime: 0,
+    },
     rootDir: '',
     version: '',
     workers: 0,
@@ -116,6 +120,7 @@ function mergeConfigs(to: JsonConfig, from: JsonConfig): JsonConfig {
     metadata: {
       ...to.metadata,
       ...from.metadata,
+      totalTime: to.metadata.totalTime + from.metadata.totalTime,
     },
     workers: to.workers + from.workers,
   };

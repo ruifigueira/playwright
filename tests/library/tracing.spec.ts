@@ -637,9 +637,10 @@ test('should store postData for global request', async ({ request, server }, tes
   }));
 });
 
-test('should not flush console events', async ({ context, page }, testInfo) => {
-  test.fixme(true, 'https://github.com/microsoft/playwright/issues/23107');
-  await context.tracing.start();
+test('should not flush console events', async ({ context, page, mode }, testInfo) => {
+  test.skip(mode === 'service', 'Uses artifactsFolderName');
+  const testId = test.info().testId;
+  await context.tracing.start({ name: testId });
   const promise = new Promise<void>(f => {
     let counter = 0;
     page.on('console', () => {
@@ -662,7 +663,7 @@ test('should not flush console events', async ({ context, page }, testInfo) => {
 
   let content: string;
   await expect(async () => {
-    const traceName = fs.readdirSync(dir).find(name => name.endsWith('.trace'));
+    const traceName = fs.readdirSync(dir).find(name => name.endsWith(testId + '.trace'));
     content = await fs.promises.readFile(path.join(dir, traceName), 'utf8');
     expect(content).toContain('page.evaluate');
     expect(content).toContain('31415926');
@@ -672,7 +673,7 @@ test('should not flush console events', async ({ context, page }, testInfo) => {
   await page.evaluate(() => 42);
 
   await expect(async () => {
-    const traceName = fs.readdirSync(dir).find(name => name.endsWith('.trace'));
+    const traceName = fs.readdirSync(dir).find(name => name.endsWith(testId + '.trace'));
     const content = await fs.promises.readFile(path.join(dir, traceName), 'utf8');
     expect(content).toContain('hello 0');
     expect(content).toContain('hello 99');

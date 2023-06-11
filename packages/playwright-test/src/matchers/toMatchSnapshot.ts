@@ -179,6 +179,7 @@ class SnapshotHelper<T extends ImageComparatorOptions> {
     if (isWriteMissingMode) {
       writeFileSync(this.snapshotPath, actual);
       writeFileSync(this.actualPath, actual);
+      this.testInfo.attachments.push({ name: addSuffixToFilePath(this.snapshotName, '-actual'), contentType: this.mimeType, path: this.actualPath });
     }
     const message = `A snapshot doesn't exist at ${this.snapshotPath}${isWriteMissingMode ? ', writing actual.' : '.'}`;
     if (this.updateSnapshots === 'all') {
@@ -334,6 +335,7 @@ export async function toHaveScreenshot(
     caret: config?.caret ?? 'hide',
     ...helper.allOptions,
     mask: (helper.allOptions.mask || []) as LocatorEx[],
+    maskColor: helper.allOptions.maskColor,
     name: undefined,
     threshold: undefined,
     maxDiffPixels: undefined,

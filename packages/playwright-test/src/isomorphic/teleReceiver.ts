@@ -24,6 +24,8 @@ export type JsonLocation = Location;
 export type JsonError = string;
 export type JsonStackFrame = { file: string, line: number, column: number };
 
+export type JsonStdIOType = 'stdout' | 'stderr';
+
 export type JsonConfig = Pick<FullConfig, 'configFile' | 'globalTimeout' | 'maxFailures' | 'metadata' | 'rootDir' | 'version' | 'workers'> & {
   listOnly: boolean;
 };
@@ -86,12 +88,14 @@ export type JsonTestResultStart = {
   startTime: string;
 };
 
+export type JsonAttachment = Omit<TestResult['attachments'][0], 'body'> & { base64?: string };
+
 export type JsonTestResultEnd = {
   id: string;
   duration: number;
   status: TestStatus;
   errors: TestError[];
-  attachments: TestResult['attachments'];
+  attachments: JsonAttachment[];
 };
 
 export type JsonTestStepStart = {
@@ -121,12 +125,14 @@ export class TeleReporterReceiver {
   private _tests = new Map<string, TeleTestCase>();
   private _rootDir!: string;
   private _clearPreviousResultsWhenTestBegins: boolean = false;
+  private _reuseTestCases: boolean;
   private _reportConfig: MergeReporterConfig | undefined;
 
-  constructor(pathSeparator: string, reporter: Reporter, reportConfig?: MergeReporterConfig) {
+  constructor(pathSeparator: string, reporter: Reporter, reuseTestCases: boolean, reportConfig?: MergeReporterConfig) {
     this._rootSuite = new TeleSuite('', 'root');
     this._pathSeparator = pathSeparator;
     this._reporter = reporter;
+    this._reuseTestCases = reuseTestCases;
     this._reportConfig = reportConfig;
   }
 
@@ -226,7 +232,7 @@ export class TeleReporterReceiver {
     result.status = payload.status;
     result.statusEx = payload.status;
     result.errors = payload.errors;
-    result.attachments = payload.attachments;
+    result.attachments = this._parseAttachments(payload.attachments);
     this._reporter.onTestEnd?.(test, result);
   }
 
@@ -242,7 +248,7 @@ export class TeleReporterReceiver {
       location: this._absoluteLocation(payload.location),
       parent: parentStep,
       startTime: new Date(payload.startTime),
-      duration: 0,
+      duration: -1,
       steps: [],
     };
     if (parentStep)
@@ -266,14 +272,17 @@ export class TeleReporterReceiver {
     this._reporter.onError?.(error);
   }
 
-  private _onStdIO(type: 'stdout' | 'stderr', testId: string | undefined, resultId: string | undefined, data: string, isBase64: boolean) {
+  private _onStdIO(type: JsonStdIOType, testId: string | undefined, resultId: string | undefined, data: string, isBase64: boolean) {
     const chunk = isBase64 ? ((globalThis as any).Buffer ? Buffer.from(data, 'base64') : atob(data)) : data;
     const test = testId ? this._tests.get(testId) : undefined;
     const result = test && resultId ? test.resultsMap.get(resultId) : undefined;
-    if (type === 'stdout')
+    if (type === 'stdout') {
+      result?.stdout.push(chunk);
       this._reporter.onStdOut?.(chunk, test, result);
-    else
+    } else {
+      result?.stderr.push(chunk);
       this._reporter.onStdErr?.(chunk, test, result);
+    }
   }
 
   private _onEnd(result: FullResult): Promise<void> | undefined {
@@ -316,6 +325,15 @@ export class TeleReporterReceiver {
     };
   }
 
+  private _parseAttachments(attachments: JsonAttachment[]): TestResult['attachments'] {
+    return attachments.map(a => {
+      return {
+        ...a,
+        body: a.base64 && (globalThis as any).Buffer ? Buffer.from(a.base64, 'base64') : undefined,
+      };
+    });
+  }
+
   private _mergeSuitesInto(jsonSuites: JsonSuite[], parent: TeleSuite) {
     for (const jsonSuite of jsonSuites) {
       let targetSuite = parent.suites.find(s => s.title === jsonSuite.title);
@@ -334,7 +352,7 @@ export class TeleReporterReceiver {
 
   private _mergeTestsInto(jsonTests: JsonTestCase[], parent: TeleSuite) {
     for (const jsonTest of jsonTests) {
-      let targetTest = parent.tests.find(s => s.title === jsonTest.title);
+      let targetTest = this._reuseTestCases ? parent.tests.find(s => s.title === jsonTest.title) : undefined;
       if (!targetTest) {
         targetTest = new TeleTestCase(jsonTest.testId, jsonTest.title, this._absoluteLocation(jsonTest.location));
         targetTest.parent = parent;

@@ -134,7 +134,7 @@ pwsh bin/Debug/netX/playwright.ps1 install --with-deps chromium
 
 See [system requirements](./intro.md#system-requirements) for officially supported operating systems.
 
-## Update Playwright regulary
+## Update Playwright regularly
 * langs: js
 
 By keeping your Playwright version up to date you will be able to use new features and test your app on the latest browser versions and catch failures before the latest browser version is released to the public.
@@ -991,3 +991,41 @@ mvn test
 Playwright keeps track of the clients that use its browsers. When there are no more clients that require a particular version of the browser, that version is deleted from the system. That way you can safely use Playwright instances of different versions and at the same time, you don't waste disk space for the browsers that are no longer in use.
 
 To opt-out from the unused browser removal, you can set the `PLAYWRIGHT_SKIP_BROWSER_GC=1` environment variable.
+
+### Uninstall browsers
+
+This will remove the browsers (chromium, firefox, webkit) of the current Playwright installation:
+
+```bash js
+npx playwright uninstall
+```
+
+```bash java
+mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="uninstall"
+```
+
+```bash python
+playwright uninstall
+```
+
+```bash csharp
+pwsh bin/Debug/netX/playwright.ps1 uninstall
+```
+
+To remove browsers of other Playwright installations as well, pass `--all` flag:
+
+```bash js
+npx playwright uninstall --all
+```
+
+```bash java
+mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="uninstall --all"
+```
+
+```bash python
+playwright uninstall --all
+```
+
+```bash csharp
+pwsh bin/Debug/netX/playwright.ps1 uninstall --all
+```

@@ -64,6 +64,8 @@ test.slow(!!process.env.CI);
 // Slow tests are 90s.
 const expect = baseExpect.configure({ timeout: process.env.CI ? 75000 : 25000 });
 
+test.describe.configure({ mode: 'parallel' });
+
 const echoReporterJs = `
 class EchoReporter {
   onBegin(config, suite) {
@@ -281,6 +283,50 @@ test('be able to merge incomplete shards', async ({ runInlineTest, mergeReports,
   await expect(page.locator('.subnav-item:has-text("Failed") .counter')).toHaveText('1');
   await expect(page.locator('.subnav-item:has-text("Flaky") .counter')).toHaveText('1');
   await expect(page.locator('.subnav-item:has-text("Skipped") .counter')).toHaveText('2');
+});
+
+test('total time is from test run not from merge', async ({ runInlineTest, mergeReports, showReport, page }) => {
+  const reportDir = test.info().outputPath('blob-report');
+  const files = {
+    'playwright.config.ts': `
+      module.exports = {
+        retries: 1,
+        reporter: [['blob', { outputDir: '${reportDir.replace(/\\/g, '/')}' }]]
+      };
+    `,
+    'a.test.js': `
+      import { test, expect } from '@playwright/test';
+      test('slow 1', async ({}) => {
+        await new Promise(f => setTimeout(f, 2000));
+        expect(1 + 1).toBe(2);
+      });
+    `,
+    'b.test.js': `
+      import { test, expect } from '@playwright/test';
+      test('slow 1', async ({}) => {
+        await new Promise(f => setTimeout(f, 1000));
+        expect(1 + 1).toBe(2);
+      });
+    `,
+  };
+  await runInlineTest(files, { shard: `1/2` });
+  await runInlineTest(files, { shard: `2/2` });
+
+  const { exitCode, output } = await mergeReports(reportDir, { 'PW_TEST_HTML_REPORT_OPEN': 'never' }, { additionalArgs: ['--reporter', 'html'] });
+  expect(exitCode).toBe(0);
+
+  expect(output).toContain('To open last HTML report run:');
+
+  await showReport();
+
+  await expect(page.locator('.subnav-item:has-text("All") .counter')).toHaveText('2');
+  await expect(page.locator('.subnav-item:has-text("Passed") .counter')).toHaveText('2');
+
+  const durationText = await page.getByTestId('overall-duration').textContent();
+  // "Total time: 2.1s"
+  const time = /Total time: (\d+)(\.\d+)?s/.exec(durationText);
+  expect(time).toBeTruthy();
+  expect(parseInt(time[1], 10)).toBeGreaterThan(2);
 });
 
 test('merge into list report by default', async ({ runInlineTest, mergeReports }) => {
@@ -830,7 +876,8 @@ test('preserve config fields', async ({ runInlineTest, mergeReports }) => {
   expect(json.rootDir).toBe(test.info().outputDir);
   expect(json.globalTimeout).toBe(config.globalTimeout);
   expect(json.maxFailures).toBe(config.maxFailures);
-  expect(json.metadata).toEqual(config.metadata);
+  expect(json.metadata).toEqual(expect.objectContaining(config.metadata));
+  expect(json.metadata.totalTime).toBeTruthy();
   expect(json.workers).toBe(2);
   expect(json.version).toBeTruthy();
   expect(json.version).not.toEqual(test.info().config.version);
@@ -838,6 +885,121 @@ test('preserve config fields', async ({ runInlineTest, mergeReports }) => {
   expect(json.reportSlowTests).toEqual(mergeConfig.reportSlowTests);
   expect(json.configFile).toEqual(test.info().outputPath('merge.config.ts'));
   expect(json.quiet).toEqual(mergeConfig.quiet);
+});
+
+test('preserve stdout and stderr', async ({ runInlineTest, mergeReports }) => {
+  const reportDir = test.info().outputPath('blob-report');
+  const files = {
+    'echo-reporter.js': `
+      import fs from 'fs';
+
+      class EchoReporter {
+        log = [];
+        onStdOut(chunk, test, result) {
+          this.log.push('onStdOut: ' + chunk);
+          this.log.push('result.stdout: ' + result.stdout);
+        }
+        onStdErr(chunk, test, result) {
+          this.log.push('onStdErr: ' + chunk);
+          this.log.push('result.stderr: ' + result.stderr);
+        }
+        onTestEnd(test, result) {
+          this.log.push('onTestEnd');
+          this.log.push('result.stdout: ' + result.stdout);
+          this.log.push('result.stderr: ' + result.stderr);
+        }
+        onEnd() {
+          fs.writeFileSync('log.txt', this.log.join('\\n'));
+        }
+      }
+      module.exports = EchoReporter;
+    `,
+    'playwright.config.js': `
+      module.exports = {
+        reporter: [['blob']]
+      };
+    `,
+    'a.test.js': `
+      import { test, expect } from '@playwright/test';
+      test('a test', async ({}) => {
+        expect(1 + 1).toBe(2);
+        console.log('stdout text');
+        console.error('stderr text');
+      });
+    `,
+  };
+
+  await runInlineTest(files);
+
+  const { exitCode } = await mergeReports(reportDir, {}, { additionalArgs: ['--reporter', test.info().outputPath('echo-reporter.js')] });
+  expect(exitCode).toBe(0);
+  const log = fs.readFileSync(test.info().outputPath('log.txt')).toString();
+  expect(log).toBe(`onStdOut: stdout text
+
+result.stdout: stdout text
+
+onStdErr: stderr text
+
+result.stderr: stderr text
+
+onTestEnd
+result.stdout: stdout text
+
+result.stderr: stderr text
+`);
+});
+
+test('encode inline attachments', async ({ runInlineTest, mergeReports }) => {
+  const reportDir = test.info().outputPath('blob-report');
+  const files = {
+    'echo-reporter.js': `
+      import fs from 'fs';
+
+      class EchoReporter {
+        onTestEnd(test, result) {
+          const attachmentBodies = result.attachments.map(a => a.body?.toString('base64'));
+          result.attachments.forEach(a => console.log(a.body, 'isBuffer', Buffer.isBuffer(a.body)));
+          fs.writeFileSync('log.txt', attachmentBodies.join(','));
+        }
+      }
+      module.exports = EchoReporter;
+    `,
+    'playwright.config.js': `
+      module.exports = {
+        reporter: [['blob']]
+      };
+    `,
+    'a.test.js': `
+      import { test, expect } from '@playwright/test';
+      test('a test', async ({}) => {
+        expect(1 + 1).toBe(2);
+        test.info().attachments.push({
+          name: 'example.txt',
+          contentType: 'text/plain',
+          body: Buffer.from('foo'),
+        });
+
+        test.info().attachments.push({
+          name: 'example.json',
+          contentType: 'application/json',
+          body: Buffer.from(JSON.stringify({ foo: 1 })),
+        });
+
+        test.info().attachments.push({
+          name: 'example-utf16.txt',
+          contentType: 'text/plain, charset=utf16le',
+          body: Buffer.from('utf16 encoded', 'utf16le'),
+        });
+      });
+    `,
+  };
+
+  await runInlineTest(files);
+
+  const { exitCode } = await mergeReports(reportDir, {}, { additionalArgs: ['--reporter', test.info().outputPath('echo-reporter.js')] });
+  expect(exitCode).toBe(0);
+  const log = fs.readFileSync(test.info().outputPath('log.txt')).toString();
+  expect(log).toBe(`Zm9v,eyJmb28iOjF9,dQB0AGYAMQA2ACAAZQBuAGMAbwBkAGUAZAA=`);
 });
 
 test('preserve steps in html report', async ({ runInlineTest, mergeReports, showReport, page }) => {
@@ -902,7 +1064,7 @@ test('custom project suffix', async ({ runInlineTest, mergeReports }) => {
       class EchoReporter {
         onBegin(config, suite) {
           const projects = suite.suites.map(s => s.project().name);
-          console.log('projects:', projects);
+          console.log('projects:' + projects);
         }
       }
       module.exports = EchoReporter;
@@ -926,7 +1088,7 @@ test('custom project suffix', async ({ runInlineTest, mergeReports }) => {
 
   const { exitCode, output } = await mergeReports(reportDir, {}, { additionalArgs: ['--reporter', test.info().outputPath('echo-reporter.js')] });
   expect(exitCode).toBe(0);
-  expect(output).toContain(`projects: [ 'foo-suffix', 'bar-suffix' ]`);
+  expect(output).toContain(`projects:foo-suffix,bar-suffix`);
 });
 
 test('same project different suffixes', async ({ runInlineTest, mergeReports }) => {
@@ -938,7 +1100,7 @@ test('same project different suffixes', async ({ runInlineTest, mergeReports }) 
         onBegin(config, suite) {
           const projects = suite.suites.map(s => s.project().name);
           projects.sort();
-          console.log('projects:', projects);
+          console.log('projects:' + projects);
         }
       }
       module.exports = EchoReporter;
@@ -963,5 +1125,13 @@ test('same project different suffixes', async ({ runInlineTest, mergeReports }) 
   const reportDir = test.info().outputPath('blob-report');
   const { exitCode, output } = await mergeReports(reportDir, {}, { additionalArgs: ['--reporter', test.info().outputPath('echo-reporter.js')] });
   expect(exitCode).toBe(0);
-  expect(output).toContain(`projects: [ 'foo-first', 'foo-second' ]`);
+  expect(output).toContain(`projects:foo-first,foo-second`);
+});
+
+test('no reports error', async ({ runInlineTest, mergeReports }) => {
+  const reportDir = test.info().outputPath('blob-report');
+  fs.mkdirSync(reportDir, { recursive: true });
+  const { exitCode, output } = await mergeReports(reportDir);
+  expect(exitCode).toBe(1);
+  expect(output).toContain(`No report files found in`);
 });

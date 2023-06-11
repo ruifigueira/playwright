@@ -213,7 +213,9 @@ test('should report toHaveScreenshot step with expectation name in title', async
     `end browserContext.newPage`,
     `end fixture: page`,
     `end Before Hooks`,
+    `end attach "foo-actual.png"`,
     `end expect.toHaveScreenshot(foo.png)`,
+    `end attach "is-a-test-1-actual.png"`,
     `end expect.toHaveScreenshot(is-a-test-1.png)`,
     `end fixture: page`,
     `end fixture: context`,
@@ -564,7 +566,7 @@ test('should not fail if --ignore-snapshots is passed', async ({ runInlineTest }
   expect(result.exitCode).toBe(0);
 });
 
-test('should write missing expectations locally twice and continue', async ({ runInlineTest }, testInfo) => {
+test('should write missing expectations locally twice and attach them', async ({ runInlineTest }, testInfo) => {
   const result = await runInlineTest({
     ...playwrightConfig({
       snapshotPathTemplate: '__screenshots__/{testFilePath}/{arg}{ext}',
@@ -576,7 +578,10 @@ test('should write missing expectations locally twice and continue', async ({ ru
         await expect(page).toHaveScreenshot('snapshot2.png');
         console.log('Here we are!');
       });
-    `
+      test.afterEach(async ({}, testInfo) => {
+        console.log('\\n%%' + JSON.stringify(testInfo.attachments));
+      });
+    `,
   });
 
   expect(result.exitCode).toBe(1);
@@ -595,6 +600,22 @@ test('should write missing expectations locally twice and continue', async ({ ru
   const stackLines = result.output.split('\n').filter(line => line.includes('    at ')).filter(line => !line.includes(testInfo.outputPath()));
   expect(result.output).toContain('a.spec.js:5');
   expect(stackLines.length).toBe(0);
+
+  const attachments = result.outputLines.map(l => JSON.parse(l))[0];
+  for (const attachment of attachments)
+    attachment.path = attachment.path.replace(/\\/g, '/').replace(/.*test-results\//, '');
+  expect(attachments).toEqual([
+    {
+      name: 'snapshot-actual.png',
+      contentType: 'image/png',
+      path: 'a-is-a-test/snapshot-actual.png'
+    },
+    {
+      name: 'snapshot2-actual.png',
+      contentType: 'image/png',
+      path: 'a-is-a-test/snapshot2-actual.png'
+    },
+  ]);
 });
 
 test('shouldn\'t write missing expectations locally for negated matcher', async ({ runInlineTest }, testInfo) => {
@@ -1172,6 +1193,26 @@ test('should throw pretty error if expected PNG file is not a PNG', async ({ run
   expect(result.exitCode).toBe(1);
   expect(result.output).toContain('could not decode image as PNG.');
   expect(result.output).toContain('could not decode image as JPEG.');
+});
+
+test('should support maskColor option', async ({ runInlineTest }) => {
+  const result = await runInlineTest({
+    ...playwrightConfig({
+      snapshotPathTemplate: '__screenshots__/{testFilePath}/{arg}{ext}',
+    }),
+    '__screenshots__/a.spec.js/snapshot.png': createImage(IMG_WIDTH, IMG_HEIGHT, 0, 255, 0),
+    'a.spec.js': `
+      const { test, expect } = require('@playwright/test');
+      test('png', async ({ page }) => {
+        await page.setContent('<style> html,body { padding: 0; margin: 0; }</style>');
+        await expect(page).toHaveScreenshot('snapshot.png', {
+          mask: [page.locator('body')],
+          maskColor: '#00FF00',
+        });
+      });
+    `,
+  });
+  expect(result.exitCode).toBe(0);
 });
 
 function playwrightConfig(obj: any) {

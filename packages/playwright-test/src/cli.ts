@@ -139,8 +139,8 @@ async function runTests(args: string[], opts: { [key: string]: any }) {
 
   const runner = new Runner(config);
   let status: FullResult['status'];
-  if (opts.ui)
-    status = await runner.uiAllTests();
+  if (opts.ui || opts.uiHost || opts.uiPort)
+    status = await runner.uiAllTests({ host: opts.uiHost, port: opts.uiPort ? +opts.uiPort : undefined });
   else if (process.env.PWTEST_WATCH)
     status = await runner.watchAllTests();
   else
@@ -328,6 +328,8 @@ const testOptions: [string, string][] = [
   ['--timeout <timeout>', `Specify test timeout threshold in milliseconds, zero for unlimited (default: ${defaultTimeout})`],
   ['--trace <mode>', `Force tracing mode, can be ${kTraceModes.map(mode => `"${mode}"`).join(', ')}`],
   ['--ui', `Run tests in interactive UI mode`],
+  ['--ui-host <host>', 'Host to serve UI on; specifying this option opens UI in a browser tab'],
+  ['--ui-port <port>', 'Port to serve UI on, 0 for any free port; specifying this option opens UI in a browser tab'],
   ['-u, --update-snapshots', `Update snapshots with actual results (default: only create missing snapshots)`],
   ['-j, --workers <workers>', `Number of concurrent workers or percentage of logical CPU cores, use 1 to run in a single worker (default: 50%)`],
   ['-x', `Stop after the first failure`],

@@ -173,6 +173,18 @@ Examples:
   - $ install chrome firefox
     Install custom browsers, supports ${suggestedBrowsersToInstall()}.`);
 
+program
+    .command('uninstall')
+    .description('Removes browsers used by this installation of Playwright from the system (chromium, firefox, webkit, ffmpeg). This does not include branded channels.')
+    .option('--all', 'Removes all browsers used by any Playwright installation from the system.')
+    .action(async (options: { all?: boolean }) => {
+      await registry.uninstall(!!options.all).then(({ numberOfBrowsersLeft }) => {
+        if (!options.all && numberOfBrowsersLeft > 0) {
+          console.log('Successfully uninstalled Playwright browsers for the current Playwright installation.');
+          console.log(`There are still ${numberOfBrowsersLeft} browsers left, used by other Playwright installations.\nTo uninstall Playwright browsers for all installations, re-run with --all flag.`);
+        }
+      }).catch(logErrorAndExit);
+    });
 
 program
     .command('install-deps [browser...]')
@@ -273,8 +285,8 @@ program
 program
     .command('show-trace [trace...]')
     .option('-b, --browser <browserType>', 'browser to use, one of cr, chromium, ff, firefox, wk, webkit', 'chromium')
-    .option('-h, --host <host>', 'Host to serve trace on', 'localhost')
-    .option('-p, --port <port>', 'Port to serve trace on', '9322')
+    .option('-h, --host <host>', 'Host to serve trace on; specifying this option opens trace in a browser tab')
+    .option('-p, --port <port>', 'Port to serve trace on, 0 for any free port; specifying this option opens trace in a browser tab')
     .option('--stdin', 'Accept trace URLs over stdin to update the viewer')
     .description('show trace viewer')
     .action(function(traces, options) {
@@ -285,7 +297,14 @@ program
       if (options.browser === 'wk')
         options.browser = 'webkit';
 
-      showTraceViewer(traces, options.browser, { headless: false, host: options.host, port: +options.port, isServer: !!options.stdin }).catch(logErrorAndExit);
+      const openOptions = {
+        headless: false,
+        host: options.host,
+        port: +options.port,
+        isServer: !!options.stdin,
+        openInBrowser: options.port !== undefined || options.host !== undefined
+      };
+      showTraceViewer(traces, options.browser, openOptions).catch(logErrorAndExit);
     }).addHelpText('afterAll', `
 Examples:
 
