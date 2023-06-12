@@ -17,7 +17,7 @@
 import { colors, rimraf } from 'playwright-core/lib/utilsBundle';
 import util from 'util';
 import { debugTest, formatLocation, relativeFilePath, serializeError } from '../util';
-import type { TestBeginPayload, TestEndPayload, RunPayload, DonePayload, WorkerInitParams, TeardownErrorsPayload, TestOutputPayload } from '../common/ipc';
+import type { TestBeginPayload, TestEndPayload, RunPayload, DonePayload, WorkerInitParams, TeardownErrorsPayload, TestOutputPayload, StepBeginPayload, StepEndPayload, AttachmentPayload } from '../common/ipc';
 import { setCurrentTestInfo, setIsWorkerProcess } from '../common/globals';
 import { ConfigLoader } from '../common/configLoader';
 import type { Suite, TestCase } from '../common/test';
@@ -32,9 +32,21 @@ import { buildFileSuiteForProject, filterTestsRemoveEmptySuites } from '../commo
 import { PoolBuilder } from '../common/poolBuilder';
 import type { TestInfoError } from '../../types/test';
 
+type WorkerMainEventMap = {
+  stdOut: TestOutputPayload,
+  stdErr: TestOutputPayload,
+  teardownErrors: TeardownErrorsPayload,
+  done: DonePayload,
+  stepBegin: StepBeginPayload,
+  stepEnd: StepEndPayload,
+  attach: AttachmentPayload,
+  testBegin: TestBeginPayload,
+  testEnd: TestEndPayload,
+};
+
 const removeFolderAsync = util.promisify(rimraf);
 
-export class WorkerMain extends ProcessRunner {
+export class WorkerMain extends ProcessRunner<WorkerMainEventMap> {
   private _params: WorkerInitParams;
   private _config!: FullConfigInternal;
   private _project!: FullProjectInternal;

@@ -34,10 +34,10 @@ export type ProtocolResponse = {
   result?: any;
 };
 
-export class ProcessRunner {
+export class ProcessRunner<EventMap = Record<string, any>> {
   async gracefullyClose(): Promise<void> { }
 
-  protected dispatchEvent(method: string, params: any) {
+  protected dispatchEvent<K extends keyof EventMap & string>(method: K, params: EventMap[K]) {
     const response: ProtocolResponse = { method, params };
     sendMessageToParent({ method: '__dispatch__', params: response });
   }
