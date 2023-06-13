@@ -21,12 +21,17 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   resolve: {
     alias: {
-
       '@playwright-core': path.resolve(__dirname, '../playwright-core/src'),
+      '@playwright-test': path.resolve(__dirname, '../playwright-test/src'),
       'playwright-core/lib/server/deviceDescriptors': path.resolve(__dirname, '../playwright-core/src/server/deviceDescriptorsSource.json'),
       'playwright-core/lib/utilsBundle': path.resolve(__dirname, '../playwright-core/bundles/utils/src/utilsBundleImpl'),
       'playwright-core/lib/zipBundle': path.resolve(__dirname, '../playwright-core/bundles/zip/src/zipBundleImpl'),
+      // more generic alias must be below specific ones
       'playwright-core/lib': path.resolve(__dirname, '../playwright-core/src'),
+      'playwright-test/lib/common/expectBundle': path.resolve(__dirname, '../playwright-test/bundles/expect/src/expectBundleImpl'),
+      'playwright-test/lib/utilsBundle': path.resolve(__dirname, '../playwright-test/bundles/utils/src/utilsBundleImpl'),
+      // more generic alias must be below specific ones
+      'playwright-test/lib': path.resolve(__dirname, '../playwright-test/src'),
 
       'child_process': path.resolve(__dirname, './src/shims/child_process'),
       'dns': path.resolve(__dirname, './src/shims/dns'),
@@ -35,9 +40,9 @@ export default defineConfig({
       'readline': path.resolve(__dirname, './src/shims/readline'),
       'tls': path.resolve(__dirname, './src/shims/tls'),
 
-      // browserfs
-      'fs': 'browserfs/dist/shims/fs',
-      'path': 'browserfs/dist/shims/path',
+      'graceful-fs': path.resolve(__dirname, './src/shims/fs'),
+      'fs': path.resolve(__dirname, './src/shims/fs'),
+      'path': 'path',
 
       // readable-stream
       'stream': path.resolve(__dirname, './node_modules/readable-stream'),
@@ -53,6 +58,12 @@ export default defineConfig({
       'util': 'util',
       'zlib': 'browserify-zlib',
     },
+  },
+  define: {
+    // we need this one because of PLAYWRIGHT_CORE_PATH (it checks the actual version of playwright-core)
+    'require.resolve': '((s) => s)',
+    'process.platform': '"browser"',
+    'process.versions.node': '"18.16"',
   },
   build: {
     outDir: path.resolve(__dirname, '../playwright-core/lib/webpack/crx'),

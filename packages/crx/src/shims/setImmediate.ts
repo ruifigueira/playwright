@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import './process';
-import './setImmediate';
-import './buffer';
+import 'setimmediate';
 
-self.global = self;
-self.__dirname = '.';
+// @ts-ignore
+self.setImmediate = setImmediate;

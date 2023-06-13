@@ -19,6 +19,7 @@
       "@trace/*": ["./packages/trace/src/*"],
       "@web/*": ["./packages/web/src/*"],
       "playwright-core/lib/*": ["./packages/playwright-core/src/*"],
+      "playwright-test/lib/*": ["./packages/playwright-test/src/*"],
       "@playwright/test/lib/*": ["./packages/playwright-test/src/*"],
     },
     "esModuleInterop": true,

@@ -34,7 +34,7 @@ export async function getPage(tabId: number) {
   return pagePromise ? await pagePromise : undefined;
 }
 
-export async function getOrCreatePage(tabId: number, port: Port) {
+export async function getOrCreatePage(tabId: number, port?: Port) {
   if (_pages.has(tabId)) return _pages.get(tabId)!;
 
   const pagePromise = createPage(tabId, port);
@@ -43,7 +43,7 @@ export async function getOrCreatePage(tabId: number, port: Port) {
   return await pagePromise;
 }
 
-async function createPage(tabId: number, port: Port) {
+async function createPage(tabId: number, port?: Port) {
   let transport: CrxTransport | undefined;
   let recorderApp: CrxRecorderApp | undefined;
 

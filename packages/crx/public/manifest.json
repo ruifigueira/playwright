@@ -9,7 +9,15 @@
     "128": "recorder/icon-192x192.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_icon": {
+      "16": "recorder/icon-16x16.png",
+      "32": "recorder/icon-32x32.png"
+    },
+    "default_title": "Inspect"
   },
   "devtools_page": "devtools.html",
   "permissions": ["debugger", "tabs"]

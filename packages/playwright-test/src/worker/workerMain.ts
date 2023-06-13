@@ -31,6 +31,7 @@ import { loadTestFile } from '../common/testLoader';
 import { buildFileSuiteForProject, filterTestsRemoveEmptySuites } from '../common/suiteUtils';
 import { PoolBuilder } from '../common/poolBuilder';
 import type { TestInfoError } from '../../types/test';
+import type {  Worker } from 'playwright-core';
 
 type WorkerMainEventMap = {
   stdOut: TestOutputPayload,
@@ -385,7 +386,15 @@ export class WorkerMain extends ProcessRunner<WorkerMainEventMap> {
         // Now run the test itself.
         debugTest(`test function started`);
         const fn = test.fn; // Extract a variable to get a better stack trace ("myTest" vs "TestCase.myTest [as fn]").
-        await fn(testFunctionParams, testInfo);
+
+        if (process.env.PWPAGE_IMPL === 'crx') {
+          const worker = (testFunctionParams as any).page.extensionServiceWorker as Worker;
+          await worker.evaluate(new Function(`return async (fixtures) => {
+            await runTest(fixtures, ${fn.toString().replaceAll(/(\w+)\.expect/g, 'expect')});
+          }`)(), { server: {} });
+        } else {
+          await fn(testFunctionParams, testInfo);
+        }
         debugTest(`test function finished`);
       }, 'allowSkips');
     });

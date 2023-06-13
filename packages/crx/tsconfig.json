@@ -27,6 +27,9 @@
       "playwright-core/lib/*": ["../playwright-core/src/*"],
       "@playwright/test/lib/*": ["../playwright-test/src/*"],
       "@playwright-core/*": ["../playwright-core/src/*"],
+      "playwright-test/lib/*": ["../playwright-test/src/*"],
+      "@playwright-test/*": ["../playwright-test/src/*"],
+      "tests/*": ["../../tests/*"],
     }
   },
   "include": ["src"],

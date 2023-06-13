@@ -13,11 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import './shims/global';
 
 import type { Port } from './crx/crxPlaywright';
 import { getOrCreatePage, getPage } from './crx/crxPlaywright';
 import { setUnderTest } from '@playwright-core/utils';
+import { runTest } from './test/runTest';
+import { expect } from '@playwright-test/matchers/expect';
+
+// @ts-ignore
+self.runTest = runTest; self.expect = expect;
+
+chrome.action.onClicked.addListener(async () => {
+  runTest({ server: {} } as any, async ({ page }) => {
+    await page.goto('https://demo.playwright.dev/todomvc/');
+    await page.getByPlaceholder('What needs to be done?').click();
+    await page.getByPlaceholder('What needs to be done?').fill('Hello World');
+    await page.getByPlaceholder('What needs to be done?').press('Enter');
+    await page.getByRole('link', { name: 'All' }).click();
+    await page.getByRole('checkbox', { name: 'Toggle Todo' }).check();
+    await page.getByTestId('todo-title').click();
+
+    await expect(page.getByPlaceholder('What needs to be done?')).toContainText('World');
+  });
+});
 
 async function _onAttach(tabId: number, port: Port, underTest?: boolean) {
   if (underTest) setUnderTest();

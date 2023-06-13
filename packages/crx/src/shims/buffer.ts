@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import './process';
-import './setImmediate';
-import './buffer';
+import buffer from 'buffer';
 
-self.global = self;
-self.__dirname = '.';
+self.Buffer = buffer.Buffer;

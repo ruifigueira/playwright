@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import './process';
-import './setImmediate';
-import './buffer';
+import FS from '@isomorphic-git/lightning-fs';
 
-self.global = self;
-self.__dirname = '.';
+const fs = new FS('crx');
+
+export default fs;
+export const { promises, readFile, readlink, rename, readdir, stat, lstat } = fs;
