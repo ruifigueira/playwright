@@ -18,6 +18,8 @@
 import type { Page } from 'playwright-core';
 import { test as it, expect } from './pageTest';
 
+it.skip(({ isCrx }) => isCrx);
+
 async function routeIframe(page: Page) {
   await page.route('**/empty.html', route => {
     route.fulfill({

@@ -28,10 +28,10 @@ export default defineConfig({
       'playwright-core/lib/zipBundle': path.resolve(__dirname, '../playwright-core/bundles/zip/src/zipBundleImpl'),
       // more generic alias must be below specific ones
       'playwright-core/lib': path.resolve(__dirname, '../playwright-core/src'),
-      'playwright-test/lib/common/expectBundle': path.resolve(__dirname, '../playwright-test/bundles/expect/src/expectBundleImpl'),
-      'playwright-test/lib/utilsBundle': path.resolve(__dirname, '../playwright-test/bundles/utils/src/utilsBundleImpl'),
-      // more generic alias must be below specific ones
       'playwright-test/lib': path.resolve(__dirname, '../playwright-test/src'),
+      // we must keep this one relative to avoid problems with tests
+      '../common/expectBundle': path.resolve(__dirname, '../playwright-test/bundles/expect/src/expectBundleImpl'),
+      '../utilsBundle': path.resolve(__dirname, '../playwright-test/bundles/utils/src/utilsBundleImpl'),
 
       'child_process': path.resolve(__dirname, './src/shims/child_process'),
       'dns': path.resolve(__dirname, './src/shims/dns'),
@@ -55,13 +55,16 @@ export default defineConfig({
       'https': 'https-browserify',
       'os': 'os-browserify/browser',
       'url': 'url',
-      'util': 'util',
+      '_util': path.resolve(__dirname, '../../node_modules/util'),
+      'util/': path.resolve(__dirname, './src/shims/util'),
+      'util': path.resolve(__dirname, './src/shims/util'),
       'zlib': 'browserify-zlib',
     },
   },
   define: {
     // we need this one because of PLAYWRIGHT_CORE_PATH (it checks the actual version of playwright-core)
     'require.resolve': '((s) => s)',
+    'process.geteuid': '(() => "crx")',
     'process.platform': '"browser"',
     'process.versions.node': '"18.16"',
   },

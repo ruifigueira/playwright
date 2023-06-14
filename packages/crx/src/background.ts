@@ -22,9 +22,6 @@ import { setUnderTest } from '@playwright-core/utils';
 import { runTest } from './test/runTest';
 import { expect } from '@playwright-test/matchers/expect';
 
-// @ts-ignore
-self.runTest = runTest; self.expect = expect;
-
 chrome.action.onClicked.addListener(async () => {
   runTest({ server: {} } as any, async ({ page }) => {
     await page.goto('https://demo.playwright.dev/todomvc/');
@@ -34,7 +31,6 @@ chrome.action.onClicked.addListener(async () => {
     await page.getByRole('link', { name: 'All' }).click();
     await page.getByRole('checkbox', { name: 'Toggle Todo' }).check();
     await page.getByTestId('todo-title').click();
-
     await expect(page.getByPlaceholder('What needs to be done?')).toContainText('World');
   });
 });

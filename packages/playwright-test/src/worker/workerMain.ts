@@ -31,7 +31,7 @@ import { loadTestFile } from '../common/testLoader';
 import { buildFileSuiteForProject, filterTestsRemoveEmptySuites } from '../common/suiteUtils';
 import { PoolBuilder } from '../common/poolBuilder';
 import type { TestInfoError } from '../../types/test';
-import type {  Worker } from 'playwright-core';
+import CrxTestRunner from './crxTestRunner';
 
 type WorkerMainEventMap = {
   stdOut: TestOutputPayload,
@@ -281,6 +281,10 @@ export class WorkerMain extends ProcessRunner<WorkerMainEventMap> {
       }
     };
 
+    const crxTestRunner = new CrxTestRunner(testInfo);
+    if (crxTestRunner.isCrxTest() && crxTestRunner.isToSkip())
+      testInfo.expectedStatus = 'skipped';
+
     if (!this._isStopped)
       this._fixtureRunner.setPool(test._pool!);
 
@@ -385,14 +389,11 @@ export class WorkerMain extends ProcessRunner<WorkerMainEventMap> {
       await testInfo._runAndFailOnError(async () => {
         // Now run the test itself.
         debugTest(`test function started`);
-        const fn = test.fn; // Extract a variable to get a better stack trace ("myTest" vs "TestCase.myTest [as fn]").
 
-        if (process.env.PWPAGE_IMPL === 'crx') {
-          const worker = (testFunctionParams as any).page.extensionServiceWorker as Worker;
-          await worker.evaluate(new Function(`return async (fixtures) => {
-            await runTest(fixtures, ${fn.toString().replaceAll(/(\w+)\.expect/g, 'expect')});
-          }`)(), { server: {} });
+        if (crxTestRunner.isCrxTest()) {
+          await crxTestRunner.run(testFunctionParams);
         } else {
+          const fn = test.fn; // Extract a variable to get a better stack trace ("myTest" vs "TestCase.myTest [as fn]").
           await fn(testFunctionParams, testInfo);
         }
         debugTest(`test function finished`);

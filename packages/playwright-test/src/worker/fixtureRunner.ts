@@ -297,7 +297,7 @@ export class FixtureRunner {
   }
 }
 
-function getRequiredFixtureNames(fn: Function, location?: Location) {
+export function getRequiredFixtureNames(fn: Function, location?: Location) {
   return fixtureParameterNames(fn, location ?? { file: '<unknown>', line: 1, column: 1 }, e => {
     throw new Error(`${formatLocation(e.location!)}: ${e.message}`);
   });

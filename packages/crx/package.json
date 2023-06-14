@@ -69,6 +69,7 @@
     "@types/stack-utils": "^2.0.1",
     "@types/ws": "8.2.2",
     "@types/yazl": "^2.4.2",
+    "vite-plugin-inspect": "^0.7.28",
     "vite-plugin-node-polyfills": "^0.8.2"
   }
 }

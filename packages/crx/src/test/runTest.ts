@@ -20,6 +20,17 @@
 import type { PageTestFixtures } from 'tests/page/pageTestApi';
 import { getOrCreatePage } from '../crx/crxPlaywright';
 import { expect } from '@playwright-test/matchers/expect';
+import { rootTestType } from '@playwright-test/common/testType';
+import { setCurrentTestInfo, setCurrentlyLoadingFileSuite } from '@playwright-test/common/globals';
+import { Suite } from '@playwright-test/common/test';
+import { TestInfoImpl } from '@playwright-test/worker/testInfo';
+import type { FullConfigInternal, FullProjectInternal } from '@playwright-test/common/config';
+import type { SerializedConfig } from '@playwright-test/common/ipc';
+
+const test = rootTestType.test;
+
+// @ts-ignore
+self.runTest = runTest; self.expect = expect; self.test = test;
 
 type LightServerFixtures = {
   server: {
@@ -39,11 +50,41 @@ export async function runTest(serverFixtures: LightServerFixtures, fn: (fixtures
   });
 
   if (!tab.id) throw new Error(`Failed to create a new tab`);
-  const page = await getOrCreatePage(tab.id!);
 
-  const fixtures = { ...serverFixtures, tab, page };
-  await fn(fixtures);
+  const suite = new Suite('test', 'file');
 
-  await page.close();
-  await chrome.tabs.remove(tab.id);
+
+  try {
+    setCurrentlyLoadingFileSuite(suite);
+    test('test', fn);
+    setCurrentlyLoadingFileSuite(undefined);
+
+    const [testCase] = suite.tests;
+    const noop = () => {};
+    const testInfo = new TestInfoImpl(
+        { config: {} } as unknown as FullConfigInternal,
+        { project: { snapshotDir: '.', testDir: '.', outputDir: '.' } } as FullProjectInternal,
+        { workerIndex: 0, parallelIndex: 0, projectId: 'crx', repeatEachIndex: 0, config: { } as SerializedConfig },
+        testCase,
+        0,
+        noop,
+        noop,
+        noop,
+    );
+    setCurrentTestInfo(testInfo);
+
+    const page = await getOrCreatePage(tab.id!);
+
+    const fixtures = { ...serverFixtures, tab, page };
+    await fn(fixtures);
+
+    await page.close();
+    await chrome.tabs.remove(tab.id);
+
+  } finally {
+    setCurrentTestInfo(null);
+
+    // just to ensure we don't leak
+    setCurrentlyLoadingFileSuite(undefined);
+  }
 }
