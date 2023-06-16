@@ -18,6 +18,35 @@ import type { Worker } from 'playwright-core';
 import { getRequiredFixtureNames } from './fixtureRunner';
 import type { TestInfoImpl } from './testInfo';
 
+const toProcessParamFixtureKeys = [
+  'page',
+  'server',
+];
+
+const asIsSupportedParamFixtureKeys = [
+  'browserName',
+  'headless',
+  'channel',
+  'screenshot',
+  'trace',
+  'video',
+  'browserName',
+  'browserVersion',
+  'browserMajorVersion',
+  'isAndroid',
+  'isElectron',
+  'isWebView2',
+  'platform',
+  'isWindows',
+  'isMac',
+  'isLinux',
+];
+
+const supportedParamFixtureKeys = [
+  ...toProcessParamFixtureKeys,
+  ...asIsSupportedParamFixtureKeys,
+];
+
 export default class CrxTestRunner {
   private _testInfo: TestInfoImpl;
 
@@ -31,11 +60,11 @@ export default class CrxTestRunner {
 
   isToSkip() {
     const names = getRequiredFixtureNames(this._testInfo.fn);
-    return !names.every(name => ['page', 'server', 'browserName'].includes(name));
+    return !names.every(name => supportedParamFixtureKeys.includes(name));
   }
 
-  async run(testFunctionParams: object | null) {
-    const { page, server: serverObj, browserName } = testFunctionParams as any;
+  async run(testFunctionParams: any) {
+    const { page, server: serverObj } = testFunctionParams as any;
     const worker = page?.extensionServiceWorker as Worker;
 
     if (!worker) throw new Error(`could not find extensionServiceWorker0`);
@@ -45,13 +74,34 @@ export default class CrxTestRunner {
       const { PORT, PREFIX, CROSS_PROCESS_PREFIX, EMPTY_PAGE } = serverObj;
       server = { PORT, PREFIX, CROSS_PROCESS_PREFIX, EMPTY_PAGE };
     }
-    const fn = this._testInfo.fn;
-    const fnBody = fn.toString()
-        .replaceAll(/\w+\.expect/g, 'expect')
-        .replaceAll(/\_\w+Test\.test/g, 'test');
-    await worker.evaluate(new Function(`return async (fixtures) => {
-      const { test, expect } = self;
-      await runTest(fixtures, ${fnBody});
-    }`)(), { server, browserName });
+
+    const params: any = server ? { server } : {};
+
+    if (testFunctionParams) {
+      for (const key of asIsSupportedParamFixtureKeys) {
+        if (key in testFunctionParams)
+          params[key] = testFunctionParams[key];
+      }
+    }
+
+    try {
+      const fn = this._testInfo.fn;
+      const fnBody = fn.toString()
+          .replaceAll(/\w+\.expect/g, 'expect')
+          .replaceAll(/\_\w+Test\.test/g, 'test');
+      await worker.evaluate(new Function(`return async (fixtures) => {
+        const { test, expect } = self;
+        await runTest(fixtures, ${fnBody});
+      }`)(), {
+        server,
+        ...params,
+      });
+    } catch (e) {
+      if (e.message) {
+        const [, notDefinedVar] = /ReferenceError: (\S+) is not defined/.exec(e.message) ?? [];
+        if (!notDefinedVar) throw e;
+        this._testInfo.skip(true, `Skipping test because it contains a variable defined outside the scope: ${notDefinedVar}`);
+      }
+    }
   }
 }
