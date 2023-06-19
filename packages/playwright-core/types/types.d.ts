@@ -13558,6 +13558,15 @@ export interface ElectronApplication {
   windows(): Array<Page>;
 }
 
+export interface Crx {
+  /**
+   * Closes Electron application.
+   */
+  close(): Promise<void>;
+
+  connect(options?: { timeout?: number }): Promise<BrowserContext>;
+}
+
 export type AndroidElementInfo = {
   clazz: string;
   desc: string;
@@ -13648,6 +13657,7 @@ export type AndroidKey =
 
 export const _electron: Electron;
 export const _android: Android;
+export const _crx: Crx;
 
 // This is required to not export everything by default. See https://github.com/Microsoft/TypeScript/issues/19545#issuecomment-340490459
 export {};

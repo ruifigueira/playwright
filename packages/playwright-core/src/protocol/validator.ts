@@ -297,6 +297,7 @@ scheme.PlaywrightInitializer = tObject({
   webkit: tChannel(['BrowserType']),
   android: tChannel(['Android']),
   electron: tChannel(['Electron']),
+  crx: tChannel(['Crx']),
   utils: tChannel(['LocalUtils']),
   deviceDescriptors: tArray(tObject({
     name: tString,
@@ -745,12 +746,14 @@ scheme.BrowserContextWaitForEventInfoParams = tType('EventTargetWaitForEventInfo
 scheme.PageWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.WebSocketWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.ElectronApplicationWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
+scheme.CrxWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.AndroidDeviceWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.EventTargetWaitForEventInfoResult = tOptional(tObject({}));
 scheme.BrowserContextWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.PageWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.WebSocketWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.ElectronApplicationWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
+scheme.CrxWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.AndroidDeviceWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.BrowserContextInitializer = tObject({
   isChromium: tBoolean,
@@ -2271,6 +2274,16 @@ scheme.ElectronApplicationEvaluateExpressionHandleResult = tObject({
 });
 scheme.ElectronApplicationCloseParams = tOptional(tObject({}));
 scheme.ElectronApplicationCloseResult = tOptional(tObject({}));
+scheme.CrxInitializer = tOptional(tObject({}));
+scheme.CrxCloseEvent = tOptional(tObject({}));
+scheme.CrxConnectParams = tObject({
+  timeout: tOptional(tNumber),
+});
+scheme.CrxConnectResult = tObject({
+  browserContext: tChannel(['BrowserContext']),
+});
+scheme.CrxCloseParams = tOptional(tObject({}));
+scheme.CrxCloseResult = tOptional(tObject({}));
 scheme.AndroidInitializer = tOptional(tObject({}));
 scheme.AndroidDevicesParams = tObject({
   host: tOptional(tString),

@@ -38,9 +38,7 @@ export const crxTest = contextTest.extend<PageTestFixtures & CrxTestFixtures>({
     });
 
     await run(context);
-
-    if (context)
-      await context.close();
+    await context.close();
   },
 
   extensionServiceWorker: async ({ context }, use) => {

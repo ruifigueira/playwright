@@ -18,7 +18,7 @@
 // import type { TestError } from '@playwright/test/reporter';
 
 import type { PageTestFixtures } from 'tests/page/pageTestApi';
-import { getOrCreatePage } from '../crx/crxPlaywright';
+import { _crx as crx } from '../crx/crxPlaywright';
 import { expect } from '@playwright-test/matchers/expect';
 import { rootTestType } from '@playwright-test/common/testType';
 import { setCurrentTestInfo, setCurrentlyLoadingFileSuite } from '@playwright-test/common/globals';
@@ -44,13 +44,6 @@ type LightServerFixtures = {
 type CrxFixtures = PageTestFixtures & LightServerFixtures;
 
 export async function runTest(serverFixtures: LightServerFixtures, fn: (fixtures: CrxFixtures) => Promise<void>) {
-  const tab = await chrome.tabs.create({
-    active: true,
-    url: 'about:blank',
-  });
-
-  if (!tab.id) throw new Error(`Failed to create a new tab`);
-
   const suite = new Suite('test', 'file');
 
 
@@ -73,13 +66,11 @@ export async function runTest(serverFixtures: LightServerFixtures, fn: (fixtures
     );
     setCurrentTestInfo(testInfo);
 
-    const page = await getOrCreatePage(tab.id!);
+    const context = await crx.connect();
+    const page = context.pages()[0] ?? await context.newPage();
 
-    const fixtures = { ...serverFixtures, tab, page };
+    const fixtures = { ...serverFixtures, page };
     await fn(fixtures);
-
-    await page.close();
-    await chrome.tabs.remove(tab.id);
 
   } finally {
     setCurrentTestInfo(null);

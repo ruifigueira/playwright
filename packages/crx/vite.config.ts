@@ -67,6 +67,7 @@ export default defineConfig({
     'process.geteuid': '(() => "crx")',
     'process.platform': '"browser"',
     'process.versions.node': '"18.16"',
+    'process.env.DEBUG': '"*"',
   },
   build: {
     outDir: path.resolve(__dirname, '../playwright-core/lib/webpack/crx'),

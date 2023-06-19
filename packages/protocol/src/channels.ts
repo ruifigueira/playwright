@@ -29,6 +29,7 @@ export type InitializerTraits<T> =
     T extends AndroidDeviceChannel ? AndroidDeviceInitializer :
     T extends AndroidSocketChannel ? AndroidSocketInitializer :
     T extends AndroidChannel ? AndroidInitializer :
+    T extends CrxChannel ? CrxInitializer :
     T extends ElectronApplicationChannel ? ElectronApplicationInitializer :
     T extends ElectronChannel ? ElectronInitializer :
     T extends CDPSessionChannel ? CDPSessionInitializer :
@@ -67,6 +68,7 @@ export type EventsTraits<T> =
     T extends AndroidDeviceChannel ? AndroidDeviceEvents :
     T extends AndroidSocketChannel ? AndroidSocketEvents :
     T extends AndroidChannel ? AndroidEvents :
+    T extends CrxChannel ? CrxEvents :
     T extends ElectronApplicationChannel ? ElectronApplicationEvents :
     T extends ElectronChannel ? ElectronEvents :
     T extends CDPSessionChannel ? CDPSessionEvents :
@@ -105,6 +107,7 @@ export type EventTargetTraits<T> =
     T extends AndroidDeviceChannel ? AndroidDeviceEventTarget :
     T extends AndroidSocketChannel ? AndroidSocketEventTarget :
     T extends AndroidChannel ? AndroidEventTarget :
+    T extends CrxChannel ? CrxEventTarget :
     T extends ElectronApplicationChannel ? ElectronApplicationEventTarget :
     T extends ElectronChannel ? ElectronEventTarget :
     T extends CDPSessionChannel ? CDPSessionEventTarget :
@@ -536,6 +539,7 @@ export type PlaywrightInitializer = {
   webkit: BrowserTypeChannel,
   android: AndroidChannel,
   electron: ElectronChannel,
+  crx: CrxChannel,
   utils: LocalUtilsChannel,
   deviceDescriptors: {
     name: string,
@@ -4108,6 +4112,34 @@ export type ElectronApplicationCloseResult = void;
 
 export interface ElectronApplicationEvents {
   'close': ElectronApplicationCloseEvent;
+}
+
+// ----------- Crx -----------
+export type CrxInitializer = {};
+export interface CrxEventTarget {
+  on(event: 'close', callback: (params: CrxCloseEvent) => void): this;
+}
+export interface CrxChannel extends CrxEventTarget, EventTargetChannel {
+  _type_Crx: boolean;
+  connect(params: CrxConnectParams, metadata?: CallMetadata): Promise<CrxConnectResult>;
+  close(params?: CrxCloseParams, metadata?: CallMetadata): Promise<CrxCloseResult>;
+}
+export type CrxCloseEvent = {};
+export type CrxConnectParams = {
+  timeout?: number,
+};
+export type CrxConnectOptions = {
+  timeout?: number,
+};
+export type CrxConnectResult = {
+  browserContext: BrowserContextChannel,
+};
+export type CrxCloseParams = {};
+export type CrxCloseOptions = {};
+export type CrxCloseResult = void;
+
+export interface CrxEvents {
+  'close': CrxCloseEvent;
 }
 
 // ----------- Android -----------

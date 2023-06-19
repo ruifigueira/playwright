@@ -607,6 +607,7 @@ Playwright:
     webkit: BrowserType
     android: Android
     electron: Electron
+    crx: Crx
     utils: LocalUtils
     deviceDescriptors:
       type: array
@@ -3216,6 +3217,23 @@ ElectronApplication:
   events:
     close:
 
+Crx:
+  type: interface
+
+  extends: EventTarget
+
+  commands:
+
+    connect:
+      parameters:
+        timeout: number?
+      returns:
+        browserContext: BrowserContext
+
+    close:
+
+  events:
+    close:
 
 Android:
   type: interface
