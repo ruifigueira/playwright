@@ -3230,6 +3230,20 @@ Crx:
       returns:
         browserContext: BrowserContext
 
+    atach:
+      parameters:
+        tabId: number
+      returns:
+        page: Page
+
+    detach:
+      parameters:
+        tabId: number
+
+    newPage:
+      returns:
+        page: Page
+
     close:
 
   events:

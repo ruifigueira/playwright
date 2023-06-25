@@ -168,27 +168,24 @@ export class CrxTransport implements ConnectionTransport {
   }
 
   close() {
-    // don't actually close the debugger, otherwise it could close it too soon
-    // just call the onclose callback
-    Promise.resolve().then(() => {
+    if (this._detachedPromise) return;
+    console.log(`Closing CRX transport`);
+
+    this._detachedPromise = Promise.all([...this._tabToTarget.keys()].map(async tabId => {
+      await chrome.debugger.detach({ tabId }).catch(() => {});
+      const targetId = this._tabToTarget.get(tabId);
+      this._tabToTarget.delete(tabId);
+      if (targetId) this._targetToTab.delete(targetId);
+    })).then(() => {
       if (this.onclose)
         this.onclose();
     });
   }
 
   async closeAndWait() {
-    // if already called, ignore it
-    if (this._detachedPromise !== undefined) return;
-
     this._progress?.log(`<chrome debugger disconnecting>`);
     chrome.debugger.onEvent.removeListener(this._onDebuggerEvent);
-    this._detachedPromise = Promise.all([...this._tabToTarget.keys()].map(async tabId => {
-      await chrome.debugger.detach({ tabId }).catch(() => {});
-      const targetId = this._tabToTarget.get(tabId);
-      this._tabToTarget.delete(tabId);
-      if (targetId) this._targetToTab.delete(targetId);
-    })).then();
-
+    this.close();
     await this._detachedPromise; // Make sure to await the actual disconnect.
     this._progress?.log(`<chrome debugger disconnected>`);
   }

@@ -44,7 +44,7 @@ declare global {
   let serviceWorker: ServiceWorker;
   let _mockPort: PortMock;
   function getPage(tabId: number): Promise<Page>;
-  function _onAttach(tabId: number, port: Port, underTest?: boolean): Promise<void>;
+  function _onAttach(tabId: number, port: Port, options?: { underTest?: boolean }): Promise<void>;
 }
 
 type CrxTestArgs = {
@@ -174,7 +174,7 @@ export const test = contextTest.extend<CrxTestArgs>({
       }
 
       const port = new PortMock();
-      await _onAttach(tabId, port, true);
+      await _onAttach(tabId, port, { underTest: true });
       port.emit({ event: 'setMode', params: { mode: 'recording' } });
 
       _mockPort = port;

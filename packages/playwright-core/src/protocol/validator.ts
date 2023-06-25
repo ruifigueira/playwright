@@ -2282,6 +2282,20 @@ scheme.CrxConnectParams = tObject({
 scheme.CrxConnectResult = tObject({
   browserContext: tChannel(['BrowserContext']),
 });
+scheme.CrxAtachParams = tObject({
+  tabId: tNumber,
+});
+scheme.CrxAtachResult = tObject({
+  page: tChannel(['Page']),
+});
+scheme.CrxDetachParams = tObject({
+  tabId: tNumber,
+});
+scheme.CrxDetachResult = tOptional(tObject({}));
+scheme.CrxNewPageParams = tOptional(tObject({}));
+scheme.CrxNewPageResult = tObject({
+  page: tChannel(['Page']),
+});
 scheme.CrxCloseParams = tOptional(tObject({}));
 scheme.CrxCloseResult = tOptional(tObject({}));
 scheme.AndroidInitializer = tOptional(tObject({}));

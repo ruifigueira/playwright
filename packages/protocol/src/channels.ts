@@ -4122,6 +4122,9 @@ export interface CrxEventTarget {
 export interface CrxChannel extends CrxEventTarget, EventTargetChannel {
   _type_Crx: boolean;
   connect(params: CrxConnectParams, metadata?: CallMetadata): Promise<CrxConnectResult>;
+  atach(params: CrxAtachParams, metadata?: CallMetadata): Promise<CrxAtachResult>;
+  detach(params: CrxDetachParams, metadata?: CallMetadata): Promise<CrxDetachResult>;
+  newPage(params?: CrxNewPageParams, metadata?: CallMetadata): Promise<CrxNewPageResult>;
   close(params?: CrxCloseParams, metadata?: CallMetadata): Promise<CrxCloseResult>;
 }
 export type CrxCloseEvent = {};
@@ -4133,6 +4136,27 @@ export type CrxConnectOptions = {
 };
 export type CrxConnectResult = {
   browserContext: BrowserContextChannel,
+};
+export type CrxAtachParams = {
+  tabId: number,
+};
+export type CrxAtachOptions = {
+
+};
+export type CrxAtachResult = {
+  page: PageChannel,
+};
+export type CrxDetachParams = {
+  tabId: number,
+};
+export type CrxDetachOptions = {
+
+};
+export type CrxDetachResult = void;
+export type CrxNewPageParams = {};
+export type CrxNewPageOptions = {};
+export type CrxNewPageResult = {
+  page: PageChannel,
 };
 export type CrxCloseParams = {};
 export type CrxCloseOptions = {};

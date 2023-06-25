@@ -18,7 +18,7 @@ import type * as channels from '@protocol/channels';
 import { RecentLogsCollector } from '../../common/debugLogger';
 import { TimeoutSettings } from '../../common/timeoutSettings';
 import { Browser, type BrowserOptions, type BrowserProcess } from '../browser';
-import type { BrowserContext } from '../browserContext';
+import { BrowserContext } from '../browserContext';
 import { validateBrowserContextOptions } from '../browserContext';
 import { CRBrowser } from '../chromium/crBrowser';
 import { helper } from '../helper';
@@ -32,13 +32,17 @@ export class Crx extends SdkObject {
     Close: 'close',
   };
 
+  private _browserContext?: BrowserContext;
+
   constructor(playwright: Playwright) {
     super(playwright, 'crx');
   }
 
   async close() {
+    if (!this._browserContext) return;
     const progressController = new ProgressController(serverSideCallMetadata(), this);
     const closed = progressController.run(progress => helper.waitForEvent(progress, this, Crx.Events.Close).promise);
+    await this._browserContext.close(serverSideCallMetadata());
     await closed;
   }
 
@@ -48,11 +52,12 @@ export class Crx extends SdkObject {
     return controller.run(async progress => {
       const transport = await CrxTransport.connect(progress);
       const browserLogsCollector = new RecentLogsCollector();
+      const doCloseTransport = async () => await transport.closeAndWait();
       const browserProcess: BrowserProcess = {
         onclose: undefined,
         process: undefined,
-        close: async () => transport.close(),
-        kill: () => transport.closeAndWait(),
+        close: () => Promise.resolve(),
+        kill: doCloseTransport,
       };
       const contextOptions: channels.BrowserNewContextParams = {
         ...options,
@@ -73,9 +78,14 @@ export class Crx extends SdkObject {
       };
       validateBrowserContextOptions(contextOptions, browserOptions);
       const browser = await CRBrowser.connect(this.attribution.playwright, transport, browserOptions);
-      browser.on(Browser.Events.Disconnected, () => transport.close());
+      browser.on(Browser.Events.Disconnected, doCloseTransport);
       const context = browser._defaultContext;
       if (!context) throw new Error(`Browser context is null`);
+      context.on(BrowserContext.Events.Close, () => {
+        // Emit crx closed after context closed.
+        Promise.resolve().then(() => this.emit(Crx.Events.Close));
+      });
+      this._browserContext = context;
       return context;
     }, TimeoutSettings.timeout(options));
   }

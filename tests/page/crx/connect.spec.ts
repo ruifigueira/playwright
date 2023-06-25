@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { crxTest as test, expect } from '../../crx/crxTest';
 
-import path from 'path';
-import recorderConfig from '../recorder/vite.config';
-import type { UserConfig } from 'vite';
-import { defineConfig } from 'vite';
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  ...recorderConfig,
-  base: './',
-  root: '../recorder',
-  build: {
-    ...(recorderConfig as UserConfig).build,
-    outDir: path.resolve(__dirname, '../playwright-core/lib/webpack/crx/recorder'),
-  },
-  optimizeDeps: {
-    include: [
-      path.resolve(__dirname, './src/contentscript.ts'),
-    ],
-  },
+test('should work @smoke', async ({ page }) => {
+  const context = page.context();
+  expect(context.pages()).toHaveLength(1);
+  const newPage = await context.newPage();
+  expect(context.pages()).toHaveLength(2);
+  let closed = false;
+  newPage.once('close', () => {
+    closed = true;
+  });
+  await newPage.close();
+  expect(context.pages()).toHaveLength(1);
+  expect(closed).toBeTruthy();
 });
