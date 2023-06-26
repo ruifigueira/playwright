@@ -15,31 +15,54 @@
  */
 
 import type * as channels from '@protocol/channels';
-import { Crx } from '../crx/crx';
-import { BrowserContextDispatcher } from './browserContextDispatcher';
+import { PageDispatcher } from './pageDispatcher';
+import type { Crx, CrxApplication } from '../crx/crx';
 import type { RootDispatcher } from './dispatcher';
 import { Dispatcher } from './dispatcher';
+import { BrowserContextDispatcher } from './browserContextDispatcher';
 
 export class CrxDispatcher extends Dispatcher<Crx, channels.CrxChannel, RootDispatcher> implements channels.CrxChannel {
-  _type_EventTarget = true;
   _type_Crx = true;
 
   constructor(scope: RootDispatcher, crx: Crx) {
-    super(scope, crx, 'Crx', {});
-    this.addObjectListener(Crx.Events.Close, () => {
-      this._dispatchEvent('close');
-      this._dispose();
-    });
+    super(scope, crx, 'Crx', { });
   }
 
-  async connect(params: channels.CrxConnectParams): Promise<channels.CrxConnectResult> {
-    const browserContext = await this._object.connect(params);
-    return {
-      browserContext: new BrowserContextDispatcher(this.parentScope(), browserContext)
-    };
+  async start(): Promise<channels.CrxStartResult> {
+    return { crxApplication: new CrxApplicationDispatcher(this, await this._object.start()) };
+  }
+}
+
+
+export class CrxApplicationDispatcher extends Dispatcher<CrxApplication, channels.CrxApplicationChannel, CrxDispatcher> implements channels.CrxApplicationChannel {
+  _type_CrxApplication = true;
+
+  private _context: BrowserContextDispatcher;
+
+  constructor(scope: CrxDispatcher, crxApplication: CrxApplication) {
+    const context = new BrowserContextDispatcher(scope, crxApplication._context());
+    super(scope, crxApplication, 'CrxApplication', { context });
+    this._context = context;
+  }
+
+  async attach(params: channels.CrxApplicationAttachParams): Promise<channels.CrxApplicationAttachResult> {
+    return { page: PageDispatcher.from(this._context, await this._object.attach(params.tabId)) };
+  }
+
+  async attachAll(params: channels.CrxApplicationAttachAllParams): Promise<channels.CrxApplicationAttachAllResult> {
+    return { pages: (await this._object.attachAll(params)).map(page => PageDispatcher.from(this._context, page)) };
+  }
+
+  async detach(params: channels.CrxApplicationDetachParams): Promise<void> {
+    await this._object.detach(params.tabId);
+  }
+
+  async newPage(params: channels.CrxApplicationNewPageParams): Promise<channels.CrxApplicationNewPageResult> {
+    return { page: PageDispatcher.from(this._context, await this._object.newPage(params)) };
   }
 
   async close(): Promise<void> {
     await this._object.close();
+    this._dispose();
   }
 }

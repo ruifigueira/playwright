@@ -29,6 +29,7 @@ export type InitializerTraits<T> =
     T extends AndroidDeviceChannel ? AndroidDeviceInitializer :
     T extends AndroidSocketChannel ? AndroidSocketInitializer :
     T extends AndroidChannel ? AndroidInitializer :
+    T extends CrxApplicationChannel ? CrxApplicationInitializer :
     T extends CrxChannel ? CrxInitializer :
     T extends ElectronApplicationChannel ? ElectronApplicationInitializer :
     T extends ElectronChannel ? ElectronInitializer :
@@ -68,6 +69,7 @@ export type EventsTraits<T> =
     T extends AndroidDeviceChannel ? AndroidDeviceEvents :
     T extends AndroidSocketChannel ? AndroidSocketEvents :
     T extends AndroidChannel ? AndroidEvents :
+    T extends CrxApplicationChannel ? CrxApplicationEvents :
     T extends CrxChannel ? CrxEvents :
     T extends ElectronApplicationChannel ? ElectronApplicationEvents :
     T extends ElectronChannel ? ElectronEvents :
@@ -107,6 +109,7 @@ export type EventTargetTraits<T> =
     T extends AndroidDeviceChannel ? AndroidDeviceEventTarget :
     T extends AndroidSocketChannel ? AndroidSocketEventTarget :
     T extends AndroidChannel ? AndroidEventTarget :
+    T extends CrxApplicationChannel ? CrxApplicationEventTarget :
     T extends CrxChannel ? CrxEventTarget :
     T extends ElectronApplicationChannel ? ElectronApplicationEventTarget :
     T extends ElectronChannel ? ElectronEventTarget :
@@ -4117,53 +4120,115 @@ export interface ElectronApplicationEvents {
 // ----------- Crx -----------
 export type CrxInitializer = {};
 export interface CrxEventTarget {
-  on(event: 'close', callback: (params: CrxCloseEvent) => void): this;
 }
-export interface CrxChannel extends CrxEventTarget, EventTargetChannel {
+export interface CrxChannel extends CrxEventTarget, Channel {
   _type_Crx: boolean;
-  connect(params: CrxConnectParams, metadata?: CallMetadata): Promise<CrxConnectResult>;
-  atach(params: CrxAtachParams, metadata?: CallMetadata): Promise<CrxAtachResult>;
-  detach(params: CrxDetachParams, metadata?: CallMetadata): Promise<CrxDetachResult>;
-  newPage(params?: CrxNewPageParams, metadata?: CallMetadata): Promise<CrxNewPageResult>;
-  close(params?: CrxCloseParams, metadata?: CallMetadata): Promise<CrxCloseResult>;
+  start(params?: CrxStartParams, metadata?: CallMetadata): Promise<CrxStartResult>;
 }
-export type CrxCloseEvent = {};
-export type CrxConnectParams = {
-  timeout?: number,
+export type CrxStartParams = {};
+export type CrxStartOptions = {};
+export type CrxStartResult = {
+  crxApplication: CrxApplicationChannel,
 };
-export type CrxConnectOptions = {
-  timeout?: number,
-};
-export type CrxConnectResult = {
-  browserContext: BrowserContextChannel,
-};
-export type CrxAtachParams = {
-  tabId: number,
-};
-export type CrxAtachOptions = {
-
-};
-export type CrxAtachResult = {
-  page: PageChannel,
-};
-export type CrxDetachParams = {
-  tabId: number,
-};
-export type CrxDetachOptions = {
-
-};
-export type CrxDetachResult = void;
-export type CrxNewPageParams = {};
-export type CrxNewPageOptions = {};
-export type CrxNewPageResult = {
-  page: PageChannel,
-};
-export type CrxCloseParams = {};
-export type CrxCloseOptions = {};
-export type CrxCloseResult = void;
 
 export interface CrxEvents {
-  'close': CrxCloseEvent;
+}
+
+// ----------- CrxApplication -----------
+export type CrxApplicationInitializer = {
+  context: BrowserContextChannel,
+};
+export interface CrxApplicationEventTarget {
+}
+export interface CrxApplicationChannel extends CrxApplicationEventTarget, Channel {
+  _type_CrxApplication: boolean;
+  attach(params: CrxApplicationAttachParams, metadata?: CallMetadata): Promise<CrxApplicationAttachResult>;
+  attachAll(params: CrxApplicationAttachAllParams, metadata?: CallMetadata): Promise<CrxApplicationAttachAllResult>;
+  detach(params: CrxApplicationDetachParams, metadata?: CallMetadata): Promise<CrxApplicationDetachResult>;
+  newPage(params: CrxApplicationNewPageParams, metadata?: CallMetadata): Promise<CrxApplicationNewPageResult>;
+  close(params?: CrxApplicationCloseParams, metadata?: CallMetadata): Promise<CrxApplicationCloseResult>;
+}
+export type CrxApplicationAttachParams = {
+  tabId: number,
+};
+export type CrxApplicationAttachOptions = {
+
+};
+export type CrxApplicationAttachResult = {
+  page: PageChannel,
+};
+export type CrxApplicationAttachAllParams = {
+  status?: 'loading' | 'complete',
+  lastFocusedWindow?: boolean,
+  windowId?: number,
+  windowType?: 'normal' | 'popup' | 'panel' | 'app' | 'devtools',
+  active?: boolean,
+  index?: number,
+  title?: string,
+  url?: string[],
+  currentWindow?: boolean,
+  highlighted?: boolean,
+  discarded?: boolean,
+  autoDiscardable?: boolean,
+  pinned?: boolean,
+  audible?: boolean,
+  muted?: boolean,
+  groupId?: number,
+};
+export type CrxApplicationAttachAllOptions = {
+  status?: 'loading' | 'complete',
+  lastFocusedWindow?: boolean,
+  windowId?: number,
+  windowType?: 'normal' | 'popup' | 'panel' | 'app' | 'devtools',
+  active?: boolean,
+  index?: number,
+  title?: string,
+  url?: string[],
+  currentWindow?: boolean,
+  highlighted?: boolean,
+  discarded?: boolean,
+  autoDiscardable?: boolean,
+  pinned?: boolean,
+  audible?: boolean,
+  muted?: boolean,
+  groupId?: number,
+};
+export type CrxApplicationAttachAllResult = {
+  pages: PageChannel[],
+};
+export type CrxApplicationDetachParams = {
+  tabId: number,
+};
+export type CrxApplicationDetachOptions = {
+
+};
+export type CrxApplicationDetachResult = void;
+export type CrxApplicationNewPageParams = {
+  index?: number,
+  openerTabId?: number,
+  url?: string,
+  pinned?: boolean,
+  windowId?: number,
+  active?: boolean,
+  selected?: boolean,
+};
+export type CrxApplicationNewPageOptions = {
+  index?: number,
+  openerTabId?: number,
+  url?: string,
+  pinned?: boolean,
+  windowId?: number,
+  active?: boolean,
+  selected?: boolean,
+};
+export type CrxApplicationNewPageResult = {
+  page: PageChannel,
+};
+export type CrxApplicationCloseParams = {};
+export type CrxApplicationCloseOptions = {};
+export type CrxApplicationCloseResult = void;
+
+export interface CrxApplicationEvents {
 }
 
 // ----------- Android -----------

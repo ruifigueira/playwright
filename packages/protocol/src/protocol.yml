@@ -3220,33 +3220,78 @@ ElectronApplication:
 Crx:
   type: interface
 
-  extends: EventTarget
+  commands:
+
+    start:
+      returns:
+        crxApplication: CrxApplication
+
+CrxApplication:
+  type: interface
+
+  initializer:
+    context: BrowserContext
 
   commands:
 
-    connect:
-      parameters:
-        timeout: number?
-      returns:
-        browserContext: BrowserContext
-
-    atach:
+    attach:
       parameters:
         tabId: number
       returns:
         page: Page
+
+    attachAll:
+      parameters:
+        status:
+          type: enum?
+          literals:
+          - 'loading'
+          - 'complete'
+        lastFocusedWindow: boolean?
+        windowId: number?
+        windowType:
+          type: enum?
+          literals:
+          - 'normal'
+          - 'popup'
+          - 'panel'
+          - 'app'
+          - 'devtools'
+        active: boolean?
+        index: number?
+        title: string?
+        url:
+          type: array?
+          items: string
+        currentWindow: boolean?
+        highlighted: boolean?
+        discarded: boolean?
+        autoDiscardable: boolean?
+        pinned: boolean?
+        audible: boolean?
+        muted: boolean?
+        groupId: number?
+      returns:
+        pages:
+          type: array
+          items: Page
 
     detach:
       parameters:
         tabId: number
 
     newPage:
+      parameters:
+        index: number?
+        openerTabId: number?
+        url: string?
+        pinned: boolean?
+        windowId: number?
+        active: boolean?
+        selected: boolean?
       returns:
         page: Page
 
-    close:
-
-  events:
     close:
 
 Android:

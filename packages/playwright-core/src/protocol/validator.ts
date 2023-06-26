@@ -746,14 +746,12 @@ scheme.BrowserContextWaitForEventInfoParams = tType('EventTargetWaitForEventInfo
 scheme.PageWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.WebSocketWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.ElectronApplicationWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
-scheme.CrxWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.AndroidDeviceWaitForEventInfoParams = tType('EventTargetWaitForEventInfoParams');
 scheme.EventTargetWaitForEventInfoResult = tOptional(tObject({}));
 scheme.BrowserContextWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.PageWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.WebSocketWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.ElectronApplicationWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
-scheme.CrxWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.AndroidDeviceWaitForEventInfoResult = tType('EventTargetWaitForEventInfoResult');
 scheme.BrowserContextInitializer = tObject({
   isChromium: tBoolean,
@@ -2275,29 +2273,58 @@ scheme.ElectronApplicationEvaluateExpressionHandleResult = tObject({
 scheme.ElectronApplicationCloseParams = tOptional(tObject({}));
 scheme.ElectronApplicationCloseResult = tOptional(tObject({}));
 scheme.CrxInitializer = tOptional(tObject({}));
-scheme.CrxCloseEvent = tOptional(tObject({}));
-scheme.CrxConnectParams = tObject({
-  timeout: tOptional(tNumber),
+scheme.CrxStartParams = tOptional(tObject({}));
+scheme.CrxStartResult = tObject({
+  crxApplication: tChannel(['CrxApplication']),
 });
-scheme.CrxConnectResult = tObject({
-  browserContext: tChannel(['BrowserContext']),
+scheme.CrxApplicationInitializer = tObject({
+  context: tChannel(['BrowserContext']),
 });
-scheme.CrxAtachParams = tObject({
+scheme.CrxApplicationAttachParams = tObject({
   tabId: tNumber,
 });
-scheme.CrxAtachResult = tObject({
+scheme.CrxApplicationAttachResult = tObject({
   page: tChannel(['Page']),
 });
-scheme.CrxDetachParams = tObject({
+scheme.CrxApplicationAttachAllParams = tObject({
+  status: tOptional(tEnum(['loading', 'complete'])),
+  lastFocusedWindow: tOptional(tBoolean),
+  windowId: tOptional(tNumber),
+  windowType: tOptional(tEnum(['normal', 'popup', 'panel', 'app', 'devtools'])),
+  active: tOptional(tBoolean),
+  index: tOptional(tNumber),
+  title: tOptional(tString),
+  url: tOptional(tArray(tString)),
+  currentWindow: tOptional(tBoolean),
+  highlighted: tOptional(tBoolean),
+  discarded: tOptional(tBoolean),
+  autoDiscardable: tOptional(tBoolean),
+  pinned: tOptional(tBoolean),
+  audible: tOptional(tBoolean),
+  muted: tOptional(tBoolean),
+  groupId: tOptional(tNumber),
+});
+scheme.CrxApplicationAttachAllResult = tObject({
+  pages: tArray(tChannel(['Page'])),
+});
+scheme.CrxApplicationDetachParams = tObject({
   tabId: tNumber,
 });
-scheme.CrxDetachResult = tOptional(tObject({}));
-scheme.CrxNewPageParams = tOptional(tObject({}));
-scheme.CrxNewPageResult = tObject({
+scheme.CrxApplicationDetachResult = tOptional(tObject({}));
+scheme.CrxApplicationNewPageParams = tObject({
+  index: tOptional(tNumber),
+  openerTabId: tOptional(tNumber),
+  url: tOptional(tString),
+  pinned: tOptional(tBoolean),
+  windowId: tOptional(tNumber),
+  active: tOptional(tBoolean),
+  selected: tOptional(tBoolean),
+});
+scheme.CrxApplicationNewPageResult = tObject({
   page: tChannel(['Page']),
 });
-scheme.CrxCloseParams = tOptional(tObject({}));
-scheme.CrxCloseResult = tOptional(tObject({}));
+scheme.CrxApplicationCloseParams = tOptional(tObject({}));
+scheme.CrxApplicationCloseResult = tOptional(tObject({}));
 scheme.AndroidInitializer = tOptional(tObject({}));
 scheme.AndroidDevicesParams = tObject({
   host: tOptional(tString),
