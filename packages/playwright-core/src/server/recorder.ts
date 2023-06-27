@@ -106,6 +106,7 @@ export class Recorder implements InstrumentationListener {
     this._recorderApp = recorderApp;
     recorderApp.once('close', () => {
       this._debugger.resume(false);
+      this.setMode('none');
       this._recorderApp = null;
     });
     recorderApp.on('event', (data: EventData) => {

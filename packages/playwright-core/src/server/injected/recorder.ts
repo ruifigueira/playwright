@@ -57,8 +57,16 @@ export class Recorder {
 
   refreshListenersIfNeeded() {
     // Ensure we are attached to the current document, and we are on top (last element);
-    if (this._highlight.isInstalled())
+    if (this._highlight.isInstalled()) {
+
+      // uninstall if mode is none
+      if (this._mode === 'none') {
+        removeEventListeners(this._listeners);
+        this._highlight.uninstall();
+      }
       return;
+    }
+
     removeEventListeners(this._listeners);
     this._listeners = [
       addEventListener(this.document, 'click', event => this._onClick(event as MouseEvent), true),
@@ -88,6 +96,7 @@ export class Recorder {
     this._highlight.setLanguage(language);
     if (mode !== this._mode) {
       this._mode = mode;
+      this.refreshListenersIfNeeded();
       this._clearHighlight();
     }
     if (actionPoint && this._actionPoint && actionPoint.x === this._actionPoint.x && actionPoint.y === this._actionPoint.y) {
