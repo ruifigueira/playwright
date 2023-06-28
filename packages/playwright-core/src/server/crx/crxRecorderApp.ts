@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { IRecorderApp } from '@playwright-core/server/recorder/recorderApp';
+import type { IRecorderApp } from '../recorder/recorderApp';
 import type { Source, CallLog } from '@recorder/recorderTypes';
 import { EventEmitter } from 'events';
 import type { EventData } from '@recorder/recorderTypes';
-import { ManualPromise, raceAgainstTimeout } from '@playwright-core/utils';
-import type { Recorder } from '@playwright-core/server/recorder';
-import type { Port } from './crxPlaywright';
+import { ManualPromise } from '../../utils';
+import type { Recorder } from '../recorder';
+
+type Port = chrome.runtime.Port;
+type TabChangeInfo = chrome.tabs.TabChangeInfo;
 
 export type RecorderMessage = { type: 'recorder' } & (
   | { method: 'updateCallLogs', callLogs: CallLog[] }
@@ -32,8 +34,32 @@ export type RecorderMessage = { type: 'recorder' } & (
 
 export class CrxRecorderApp extends EventEmitter implements IRecorderApp {
   private _port: Port;
-  private _setModePromise?: ManualPromise<void>;
   private _recorder: Recorder;
+
+  static async open(recorder: Recorder): Promise<IRecorderApp> {
+    const window = await chrome.windows.create({ type: 'popup' });
+    const promise = new ManualPromise();
+    const onUpdated = (tabId: number, { status }: TabChangeInfo) => {
+      if (tabId === recorderTab.id && status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(onUpdated);
+        promise.resolve();
+      }
+    };
+    chrome.tabs.onUpdated.addListener(onUpdated);
+
+    const recorderTab = await chrome.tabs.create({
+      windowId: window.id,
+      url: 'recorder/index.html',
+      active: true,
+    });
+
+    await promise;
+    const port = chrome.tabs.connect(recorderTab.id!);
+
+    port.postMessage({ event: 'attached' });
+
+    return new CrxRecorderApp(port, recorder);
+  }
 
   constructor(port: Port, recorder: Recorder) {
     super();
@@ -41,21 +67,13 @@ export class CrxRecorderApp extends EventEmitter implements IRecorderApp {
     this._recorder = recorder;
 
     this._port.onMessage.addListener(this._onMessage);
+    this._port.onDisconnect.addListener(this.close);
   }
 
-  async close() {
-    this._port.onMessage.removeListener(this._onMessage);
-
-    this._setModePromise = new ManualPromise();
-    await raceAgainstTimeout(async () => {
-      this._recorder.setMode('none');
-
-      // wait until recorder processes it completely, which means it will call setMode
-      await this._setModePromise;
-    }, 2000).catch(() => {});
-
+  close = async () => {
+    this._port.disconnect();
     this.emit('close');
-  }
+  };
 
   async setPaused(paused: boolean) {
     await this._sendMessage({ type: 'recorder', method: 'setPaused',  paused });
@@ -63,7 +81,6 @@ export class CrxRecorderApp extends EventEmitter implements IRecorderApp {
 
   async setMode(mode: 'none' | 'recording' | 'inspecting') {
     await this._sendMessage({ type: 'recorder', method: 'setMode', mode });
-    this._setModePromise?.resolve();
   }
 
   async setFileIfNeeded(file: string) {

@@ -42,7 +42,7 @@ const config: Config<CoverageWorkerOptions & PlaywrightWorkerOptions & Playwrigh
 
 const metadata = {
   platform: process.platform,
-  headful: true,
+  headful: false,
   browserName: 'chromium',
   channel: undefined,
   mode: 'crx',
@@ -57,6 +57,19 @@ config.projects.push({
   },
   testDir: path.join(testDir, 'crx'),
   metadata,
+});
+
+config.projects.push({
+  name: 'crx',
+  use: {
+    browserName: 'chromium',
+    coverageName: 'crx',
+  },
+  testDir: path.join(testDir, 'library', 'inspector'),
+  metadata: {
+    ...metadata,
+    mode: 'crx-recorder',
+  },
 });
 
 config.projects.push({

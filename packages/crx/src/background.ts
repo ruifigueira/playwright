@@ -16,87 +16,33 @@
 
 import './shims/global';
 
-import type { Port } from './crx/crxPlaywright';
-import playwright, { getOrCreatePage, getPage } from './crx/crxPlaywright';
-import { setUnderTest } from '@playwright-core/utils';
+import { _crx } from './crx/crxPlaywright';
 import './test/runTest';
-// import { expect } from '@playwright-test/matchers/expect';
+import { Recorder } from '@playwright-core/server/recorder';
+import { CrxRecorderApp } from '@playwright-core/server/crx/crxRecorderApp';
+import type { CrxApplication } from '@playwright-core/client/crx';
+import { setUnderTest } from 'playwright-core/lib/utils';
+import type { BrowserContext } from '@playwright-core/client/browserContext';
 
-// chrome.action.onClicked.addListener(async () => {
-//   runTest({ server: {} } as any, async ({ page }) => {
-//     await page.goto('https://demo.playwright.dev/todomvc/');
-//     await page.getByPlaceholder('What needs to be done?').click();
-//     await page.getByPlaceholder('What needs to be done?').fill('Hello World');
-//     await page.getByPlaceholder('What needs to be done?').press('Enter');
-//     await page.getByRole('link', { name: 'All' }).click();
-//     await page.getByRole('checkbox', { name: 'Toggle Todo' }).check();
-//     await page.getByTestId('todo-title').click();
-//     await expect(page.getByPlaceholder('What needs to be done?')).toContainText('World');
-//   });
-// });
+type EnableRecorderOptions = Parameters<BrowserContext['_enableRecorder']>[0];
 
-async function _onAttach(tabId: number, port: Port, options?: { language?: string, mode?: 'recording' | 'inspecting', underTest?: boolean }) {
-  options = { language: 'javascript', mode: 'recording', ...options };
-  if (options.underTest) setUnderTest();
+let crx!: CrxApplication;
 
-  const page = await getOrCreatePage(tabId, port);
-  // underTest is set on unit tests, so they will eventually enable recorder
-  if (!options.underTest)
-    await page.context()._enableRecorder({ language: 'javascript', ...options });
+async function openRecorder(options?: EnableRecorderOptions) {
+  if (crx) return;
 
-  // console.log runs in the page, not here
-  // eslint-disable-next-line no-console
-  await page.evaluate(() => console.log('Recording...'));
+  crx = await _crx.start();
+  const context = crx.context();
+  Recorder.setAppFactory(async recorder => await CrxRecorderApp.open(recorder));
 
-  port.postMessage({ event: 'attached' });
+  await context._enableRecorder({ language: 'javascript', ...options });
+
+  crx.attachAll();
 }
 
-async function _onDetach(tabId: number) {
-  const page = await getPage(tabId);
-  await page?.close();
-}
+// @ts-ignore
+self.openRecorder = openRecorder;
+// @ts-ignore
+self.setUnderTest = setUnderTest;
 
-chrome.action.onClicked.addListener(async tab => {
-  if (!tab.id) return;
-
-  const window = await chrome.windows.create({ type: 'popup' });
-  const recorderTab = await chrome.tabs.create({
-    windowId: window.id,
-    url: 'recorder/index.html',
-    active: true
-  });
-
-  setTimeout(() => {
-    const port = chrome.tabs.connect(recorderTab.id!);
-    _onAttach(tab.id!, port, { mode: 'recording' });
-  }, 1000);
-
-  chrome.tabs.onRemoved.addListener(tabId => {
-    if (tabId === recorderTab.id) playwright._crx.close();
-  });
-});
-
-const portRegex = /playwright-devtools-page-(\d+)/;
-
-function onConnect(port: Port) {
-  const [, tabIdString] = port.name.match(portRegex) ?? [];
-  if (!tabIdString) return;
-
-  const tabId = parseInt(tabIdString, 10);
-
-  // https://stackoverflow.com/a/46628145
-  port.onMessage.addListener(({ type }) => {
-    switch (type) {
-      case 'detach': _onDetach(tabId); break;
-    }
-  });
-
-  port.onDisconnect.addListener(async () => {
-    await _onDetach(tabId);
-  });
-
-  _onAttach(tabId, port);
-}
-
-// https://developer.chrome.com/docs/extensions/mv3/devtools/#detecting-open-close
-chrome.runtime.onConnect.addListener(onConnect);
+chrome.action.onClicked.addListener(() => openRecorder());

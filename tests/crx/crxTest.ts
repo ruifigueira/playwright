@@ -17,19 +17,21 @@
 import * as path from 'path';
 import { contextTest } from '../config/browserTest';
 import type { PageTestFixtures } from '../page/pageTestApi';
-import type { Worker } from 'playwright-core';
+import type { Worker, CrxApplication, Page } from 'playwright-core';
 export { expect } from '@playwright/test';
 
 export type CrxTestFixtures = {
   extensionServiceWorker: Worker;
+  crx: CrxApplication;
 };
 
-export const crxTest = contextTest.extend<PageTestFixtures & CrxTestFixtures>({
+export const baseCrxTest = contextTest.extend<PageTestFixtures & CrxTestFixtures>({
 
   context: async ({ launchPersistent, headless }, run) => {
     const pathToExtension = path.join(__dirname, '../../packages/playwright-core/lib/webpack/crx');
     const { context } = await launchPersistent({
       headless,
+      bypassCSP: true,
       args: [
         ...(headless ? [`--headless=new`] : []),
         `--disable-extensions-except=${pathToExtension}`,
@@ -41,7 +43,7 @@ export const crxTest = contextTest.extend<PageTestFixtures & CrxTestFixtures>({
     await context.close();
   },
 
-  extensionServiceWorker: async ({ context }, use) => {
+  extensionServiceWorker: async ({ context, headless }, use) => {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
 
     // wait for initialization
@@ -56,14 +58,28 @@ export const crxTest = contextTest.extend<PageTestFixtures & CrxTestFixtures>({
       }
     }));
 
+    if (!headless && process.env.PWDEBUG) {
+      const extensionId = worker.url().split('/')[2];
+      const page = await context.newPage();
+      await page.goto(`chrome://extensions/?id=${extensionId}`);
+      await page.locator('#devMode').click();
+      await page.locator('.inspectable-view').click();
+      await page.close();
+    }
+
     await use(worker);
+  },
+});
+
+export const crxTest = baseCrxTest.extend({
+
+  crx: async ({ extensionServiceWorker }, use) => {
+    // we will need crx in the browser, not here, so just mock it
+    await use({ extensionServiceWorker } as unknown as CrxApplication);
   },
 
   // we pass extensionServiceWorker to force its instantiation
-  page: async ({ context, extensionServiceWorker }, run) => {
-    const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
-    // just to carry extensionServiceWorker for the test
-    page['extensionServiceWorker'] = extensionServiceWorker;
-    await run(page);
+  page: async ({ extensionServiceWorker }, use) => {
+    await use({ extensionServiceWorker } as unknown as Page);
   },
 });

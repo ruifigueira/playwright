@@ -13558,132 +13558,6 @@ export interface ElectronApplication {
   windows(): Array<Page>;
 }
 
-export interface Crx {
-  start(): Promise<CrxApplication>;
-}
-
-export interface CrxApplication {
-
-  attach(tabId: number): Promise<Page>;
-
-  attachAll(query?: {
-    /**
-     * Optional. Whether the tabs have completed loading.
-     * One of: "loading", or "complete"
-     */
-    status?: 'loading' | 'complete' | undefined;
-    /**
-     * Optional. Whether the tabs are in the last focused window.
-     * @since Chrome 19.
-     */
-    lastFocusedWindow?: boolean | undefined;
-    /** Optional. The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window. */
-    windowId?: number | undefined;
-    /**
-     * Optional. The type of window the tabs are in.
-     * One of: "normal", "popup", "panel", "app", or "devtools"
-     */
-    windowType?: 'normal' | 'popup' | 'panel' | 'app' | 'devtools' | undefined;
-    /** Optional. Whether the tabs are active in their windows. */
-    active?: boolean | undefined;
-    /**
-     * Optional. The position of the tabs within their windows.
-     * @since Chrome 18.
-     */
-    index?: number | undefined;
-    /** Optional. Match page titles against a pattern. */
-    title?: string | undefined;
-    /** Optional. Match tabs against one or more URL patterns. Note that fragment identifiers are not matched. */
-    url?: string | string[] | undefined;
-    /**
-     * Optional. Whether the tabs are in the current window.
-     * @since Chrome 19.
-     */
-    currentWindow?: boolean | undefined;
-    /** Optional. Whether the tabs are highlighted. */
-    highlighted?: boolean | undefined;
-    /**
-     * Optional.
-     * Whether the tabs are discarded. A discarded tab is one whose content has been unloaded from memory, but is still visible in the tab strip. Its content gets reloaded the next time it's activated.
-     * @since Chrome 54.
-     */
-    discarded?: boolean | undefined;
-    /**
-     * Optional.
-     * Whether the tabs can be discarded automatically by the browser when resources are low.
-     * @since Chrome 54.
-     */
-    autoDiscardable?: boolean | undefined;
-    /** Optional. Whether the tabs are pinned. */
-    pinned?: boolean | undefined;
-    /**
-     * Optional. Whether the tabs are audible.
-     * @since Chrome 45.
-     */
-    audible?: boolean | undefined;
-    /**
-     * Optional. Whether the tabs are muted.
-     * @since Chrome 45.
-     */
-    muted?: boolean | undefined;
-    /**
-     * Optional. The ID of the group that the tabs are in, or chrome.tabGroups.TAB_GROUP_ID_NONE for ungrouped tabs.
-     * @since Chrome 88
-     */
-    groupId?: number | undefined;
-  }): Promise<Array<Page>>;
-
-  detach(tabId: number): Promise<void>;
-
-  /**
-   *
-   * @param options same as [chrome.tabs.create(createProperties)](https://developer.chrome.com/docs/extensions/reference/tabs/#method-create)
-   */
-  newPage(options?: {
-    /** Optional. The position the tab should take in the window. The provided value will be clamped to between zero and the number of tabs in the window. */
-    index?: number | undefined;
-    /**
-     * Optional.
-     * The ID of the tab that opened this tab. If specified, the opener tab must be in the same window as the newly created tab.
-     * @since Chrome 18.
-     */
-    openerTabId?: number | undefined;
-    /**
-     * Optional.
-     * The URL to navigate the tab to initially. Fully-qualified URLs must include a scheme (i.e. 'http://www.google.com', not 'www.google.com'). Relative URLs will be relative to the current page within the extension. Defaults to the New Tab Page.
-     */
-    url?: string | undefined;
-    /**
-     * Optional. Whether the tab should be pinned. Defaults to false
-     * @since Chrome 9.
-     */
-    pinned?: boolean | undefined;
-    /** Optional. The window to create the new tab in. Defaults to the current window. */
-    windowId?: number | undefined;
-    /**
-     * Optional.
-     * Whether the tab should become the active tab in the window. Does not affect whether the window is focused (see windows.update). Defaults to true.
-     * @since Chrome 16.
-     */
-    active?: boolean | undefined;
-    /**
-     * Optional. Whether the tab should become the selected tab in the window. Defaults to true
-     * @deprecated since Chrome 33. Please use active.
-     */
-    selected?: boolean | undefined;
-  }): Promise<Page>;
-
-  /**
-   * Detaches all pages
-   */
-  close(): Promise<void>;
-
-  /**
-   * Convenience method that returns all the attached pages.
-   */
-  pages(): Array<Page>;
-}
-
 export type AndroidElementInfo = {
   clazz: string;
   desc: string;
@@ -16730,6 +16604,177 @@ export interface Coverage {
       }>;
     }>;
   }>>;
+}
+
+export interface Crx {
+  /**
+   * Launches Crx application.
+   */
+  start(): Promise<CrxApplication>;
+}
+
+export interface CrxApplication {
+  /**
+   * Attach a tab and returns the corresponding `Page`.
+   * @param tabId
+   */
+  attach(tabId: number): Promise<Page>;
+
+  /**
+   * @param options
+   */
+  attachAll(options?: {
+    /**
+     * Optional. Whether the tabs are active in their windows.
+     */
+    active?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs are audible. @since Chrome 45.
+     */
+    audible?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs can be discarded automatically by the browser when resources are low. @since Chrome 54.
+     */
+    autoDiscardable?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs are in the current window. @since Chrome 19.
+     */
+    currentWindow?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs are discarded. A discarded tab is one whose content has been unloaded from memory, but
+     * is still visible in the tab strip. Its content gets reloaded the next time it's activated. @since Chrome 54.
+     */
+    discarded?: null|boolean;
+
+    /**
+     * Optional. The ID of the group that the tabs are in, or chrome.tabGroups.TAB_GROUP_ID_NONE for ungrouped tabs.
+     * @since Chrome 88
+     */
+    groupId?: null|number;
+
+    /**
+     * Optional. Whether the tabs are highlighted.
+     */
+    highlighted?: null|boolean;
+
+    /**
+     * Optional. The position of the tabs within their windows. @since Chrome 18.
+     */
+    index?: null|number;
+
+    /**
+     * Optional. Whether the tabs are in the last focused window. @since Chrome 19.
+     */
+    lastFocusedWindow?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs are muted. @since Chrome 45.
+     */
+    muted?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs are pinned.
+     */
+    pinned?: null|boolean;
+
+    /**
+     * Optional. Whether the tabs have completed loading. One of: "loading", or "complete"
+     */
+    status?: null|"loading"|"complete"|"serial";
+
+    /**
+     * Optional. Match page titles against a pattern.
+     */
+    title?: null|string;
+
+    /**
+     * Optional. Match tabs against one or more URL patterns. Note that fragment identifiers are not matched.
+     */
+    url?: null|string|Array<string>;
+
+    /**
+     * Optional. The ID of the parent window, or `windows.WINDOW_ID_CURRENT` for the current window.
+     */
+    windowId?: null|number;
+
+    /**
+     * Optional. The type of window the tabs are in. One of: "normal", "popup", "panel", "app", or "devtools"
+     */
+    windowType?: null|"normal"|"popup"|"panel"|"app"|"devtools";
+  }): Promise<Array<Page>>;
+
+  /**
+   * This method returns browser context that can be used for setting up context-wide routing, etc.
+   */
+  context(): BrowserContext;
+
+  /**
+   * @param tabId
+   */
+  detach(tabId: number): Promise<void>;
+
+  /**
+   * Creates a chrome tab using
+   * [chrome.tabs.create(createProperties)](https://developer.chrome.com/docs/extensions/reference/tabs/#method-create)
+   * and attaches it.
+   * @param options
+   */
+  newPage(options?: {
+    /**
+     * Optional. Whether the tab should become the active tab in the window. Does not affect whether the window is focused
+     * (see windows.update). Defaults to true. @since Chrome 16.
+     */
+    active?: null|boolean;
+
+    /**
+     * Optional. The position the tab should take in the window. The provided value will be clamped to between zero and
+     * the number of tabs in the window.
+     */
+    index?: null|number;
+
+    /**
+     * Optional. The ID of the tab that opened this tab. If specified, the opener tab must be in the same window as the
+     * newly created tab. @since Chrome 18.
+     */
+    openerTabId?: null|number;
+
+    /**
+     * Optional. Whether the tab should be pinned. Defaults to false @since Chrome 9.
+     */
+    pinned?: null|boolean;
+
+    /**
+     * Optional. Whether the tab should become the selected tab in the window. Defaults to true @deprecated since Chrome
+     * 33. Please use active.
+     */
+    selected?: null|boolean;
+
+    /**
+     * Optional. The URL to navigate the tab to initially. Fully-qualified URLs must include a scheme (i.e.
+     * 'http://www.google.com', not 'www.google.com'). Relative URLs will be relative to the current page within the
+     * extension. Defaults to the New Tab Page.
+     */
+    url?: null|string;
+
+    /**
+     * Optional. The window to create the new tab in. Defaults to the current window.
+     */
+    windowId?: null|number;
+  }): Promise<Page>;
+
+  /**
+   * Convenience method that returns all the attached pages.
+   */
+  pages(): Array<Page>;
+
+  /**
+   * Detaches all pages.
+   */
+  stop(): Promise<void>;
 }
 
 /**

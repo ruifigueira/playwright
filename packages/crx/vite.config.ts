@@ -68,6 +68,7 @@ export default defineConfig({
     'process.platform': '"browser"',
     'process.versions.node': '"18.16"',
     'process.env.DEBUG': '"*"',
+    'process.stdout.isTTY': 'false',
   },
   build: {
     outDir: path.resolve(__dirname, '../playwright-core/lib/webpack/crx'),

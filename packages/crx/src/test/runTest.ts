@@ -18,7 +18,7 @@
 // import type { TestError } from '@playwright/test/reporter';
 
 import type { PageTestFixtures } from 'tests/page/pageTestApi';
-import { _crx as crx } from '../crx/crxPlaywright';
+import { _crx } from '../crx/crxPlaywright';
 import { expect } from '@playwright-test/matchers/expect';
 import { rootTestType } from '@playwright-test/common/testType';
 import { setCurrentTestInfo, setCurrentlyLoadingFileSuite } from '@playwright-test/common/globals';
@@ -26,6 +26,7 @@ import { Suite } from '@playwright-test/common/test';
 import { TestInfoImpl } from '@playwright-test/worker/testInfo';
 import type { FullConfigInternal, FullProjectInternal } from '@playwright-test/common/config';
 import type { SerializedConfig } from '@playwright-test/common/ipc';
+import { getRequiredFixtureNames } from '@playwright-test/worker/fixtureRunner';
 
 const test = rootTestType.test;
 
@@ -43,14 +44,15 @@ type LightServerFixtures = {
 
 type CrxFixtures = PageTestFixtures & LightServerFixtures;
 
-export async function runTest(serverFixtures: LightServerFixtures, fn: (fixtures: CrxFixtures) => Promise<void>) {
+export async function runTest(serverFixtures: LightServerFixtures, fn: (fixtures: Partial<CrxFixtures>) => Promise<void>) {
   const suite = new Suite('test', 'file');
-
 
   try {
     setCurrentlyLoadingFileSuite(suite);
     test('test', fn);
     setCurrentlyLoadingFileSuite(undefined);
+
+    const names = getRequiredFixtureNames(fn);
 
     const [testCase] = suite.tests;
     const noop = () => {};
@@ -66,10 +68,13 @@ export async function runTest(serverFixtures: LightServerFixtures, fn: (fixtures
     );
     setCurrentTestInfo(testInfo);
 
-    const context = await crx.connect();
-    const page = context.pages()[0] ?? await context.newPage();
+    const [tab] = await chrome.tabs.query({});
 
-    const fixtures = { ...serverFixtures, page };
+    const crx = await _crx.start();
+    const context = crx.context();
+    const page = names.includes('page') ? await crx.attach(tab.id!) : undefined;
+
+    const fixtures = { ...serverFixtures, page, crx, context };
     await fn(fixtures);
 
   } finally {

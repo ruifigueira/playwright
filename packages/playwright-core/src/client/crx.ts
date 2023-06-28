@@ -51,12 +51,25 @@ export class CrxApplication extends ChannelOwner<channels.CrxApplicationChannel>
     this._context = BrowserContext.from(initializer.context);
   }
 
+  context() {
+    return this._context;
+  }
+
+  pages(): api.Page[] {
+    return this._context.pages();
+  }
+
   async attach(tabId: number) {
     return Page.from((await this._channel.attach({ tabId })).page);
   }
 
   async attachAll(query?: AttachAllOptions) {
-    return (await this._channel.attachAll(query ?? {})).pages.map(p => Page.from(p));
+    // we must convert url as string into string[]
+    const { url: urlOrUrls, ...remaining } = query ?? {};
+    const url = urlOrUrls ? typeof urlOrUrls === 'string' ? [urlOrUrls] : urlOrUrls : undefined;
+    const params = { ...remaining, url };
+
+    return (await this._channel.attachAll(params)).pages.map(p => Page.from(p));
   }
 
   async detach(tabId: number): Promise<void> {
@@ -65,10 +78,6 @@ export class CrxApplication extends ChannelOwner<channels.CrxApplicationChannel>
 
   async newPage(options?: NewPageOptions) {
     return Page.from((await this._channel.newPage(options ?? {})).page);
-  }
-
-  pages(): api.Page[] {
-    return this._context.pages();
   }
 
   async close() {

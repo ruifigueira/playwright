@@ -36,8 +36,10 @@ export class CrxTransport implements ConnectionTransport {
     chrome.tabs.onRemoved.addListener(tabId => {
       const targetId = this._tabToTarget.get(tabId);
       this._tabToTarget.delete(tabId);
-      if (targetId) this._targetToTab.delete(targetId);
-      this._emitDetachedToTarget(tabId);
+      if (targetId) {
+        this._targetToTab.delete(targetId);
+        this._emitDetachedToTarget(tabId, targetId);
+      }
     });
   }
 
@@ -103,9 +105,6 @@ export class CrxTransport implements ConnectionTransport {
       } else if (message.method === 'Browser.setDownloadBehavior') {
         // do nothing...
         result = await Promise.resolve().then();
-      } else if (message.method === 'Emulation.setDeviceMetricsOverride') {
-        // do nothing...
-        result = await Promise.resolve().then();
       } else {
         // @ts-ignore
         result = await this._send(message.method, { tabId, ...message.params });
@@ -151,9 +150,10 @@ export class CrxTransport implements ConnectionTransport {
     await chrome.debugger.detach({ tabId }).catch(() => {});
     const targetId = this._tabToTarget.get(tabId);
     this._tabToTarget.delete(tabId);
-    if (targetId) this._targetToTab.delete(targetId);
-
-    this._emitDetachedToTarget(tabId);
+    if (targetId) {
+      this._targetToTab.delete(targetId);
+      this._emitDetachedToTarget(tabId, targetId);
+    }
   }
 
   close() {
@@ -215,9 +215,8 @@ export class CrxTransport implements ConnectionTransport {
     });
   }
 
-  private _emitDetachedToTarget(tabId: number) {
+  private _emitDetachedToTarget(tabId: number, targetId: string) {
     const sessionId = this._sessionIdFor(tabId);
-    const targetId = this._tabToTarget.get(tabId);
     this._emitMessage({
       method: 'Target.detachedFromTarget',
       sessionId: '',

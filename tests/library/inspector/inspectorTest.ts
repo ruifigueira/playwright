@@ -15,6 +15,7 @@
  */
 
 import { contextTest } from '../../config/browserTest';
+import { baseCrxTest } from '../../crx/crxTest';
 import type { Page } from 'playwright-core';
 import { step } from '../../config/baseTest';
 import * as path from 'path';
@@ -24,9 +25,19 @@ import { stripAnsi } from '../../config/utils';
 import { expect } from '@playwright/test';
 export { expect } from '@playwright/test';
 
+declare global {
+  interface Window {
+    openRecorder(options?: { language?: string, mode?: string, testIdAttributeName?: string }): Promise<void>;
+    setUnderTest(): void;
+  }
+}
+
+// await worker.evaluate(() => self.setUnderTest());
+
 type CLITestArgs = {
   recorderPageGetter: () => Promise<Page>;
   closeRecorder: () => Promise<void>;
+  _enableRecorder: (options?: { testIdAttributeName?: string }) => Promise<void>;
   openRecorder: (options?: { testIdAttributeName: string }) => Promise<Recorder>;
   runCLI: (args: string[], options?: { autoExitWhen?: string }) => CLIMock;
 };
@@ -47,19 +58,55 @@ const codegenLangId2lang = new Map([...codegenLang2Id.entries()].map(([lang, lan
 
 const playwrightToAutomateInspector = require('../../../packages/playwright-core/lib/inProcessFactory').createInProcessPlaywright();
 
-export const test = contextTest.extend<CLITestArgs>({
-  recorderPageGetter: async ({ context, toImpl, mode }, run, testInfo) => {
-    process.env.PWTEST_RECORDER_PORT = String(10907 + testInfo.workerIndex);
-    testInfo.skip(mode === 'service');
-    await run(async () => {
-      while (!toImpl(context).recorderAppForTest)
-        await new Promise(f => setTimeout(f, 100));
-      const wsEndpoint = toImpl(context).recorderAppForTest.wsEndpoint;
-      const browser = await playwrightToAutomateInspector.chromium.connectOverCDP({ wsEndpoint });
-      const c = browser.contexts()[0];
-      return c.pages()[0] || await c.waitForEvent('page');
-    });
-  },
+const baseTest = process.env.PWPAGE_IMPL === 'crx' ?
+  baseCrxTest.extend<CLITestArgs>({
+    page: async ({ context }, run) => {
+      const [page] = context.pages();
+      await run(page);
+    },
+
+    recorderPageGetter: async ({ context, extensionServiceWorker }, run) => {
+      await run(async () => {
+        const recorderUrl = await extensionServiceWorker.evaluate(() => chrome.runtime.getURL('recorder/index.html'));
+        return context.pages().find(p => p.url() === recorderUrl) ??
+          await new Promise(resolve => context.on('page', p => {
+            if (p.url() === recorderUrl) resolve(p);
+          }));
+      });
+    },
+
+    _enableRecorder: async ({ extensionServiceWorker }, run) => {
+      await run(async (options?: { testIdAttributeName: string }) => {
+        await extensionServiceWorker.evaluate(async options => {
+          self.setUnderTest();
+          await self.openRecorder({ language: 'javascript', mode: 'recording', ...options });
+        }, options);
+      });
+    },
+  })
+  :
+  contextTest.extend<CLITestArgs>({
+    recorderPageGetter: async ({ context, toImpl, mode }, run, testInfo) => {
+      process.env.PWTEST_RECORDER_PORT = String(10907 + testInfo.workerIndex);
+      testInfo.skip(mode === 'service');
+      await run(async () => {
+        while (!toImpl(context).recorderAppForTest)
+          await new Promise(f => setTimeout(f, 100));
+        const wsEndpoint = toImpl(context).recorderAppForTest.wsEndpoint;
+        const browser = await playwrightToAutomateInspector.chromium.connectOverCDP({ wsEndpoint });
+        const c = browser.contexts()[0];
+        return c.pages()[0] || await c.waitForEvent('page');
+      });
+    },
+
+    _enableRecorder: async ({ page }, run) => {
+      await run(async (options?: { testIdAttributeName: string }) => {
+        await (page.context() as any)._enableRecorder({ language: 'javascript', mode: 'recording', ...options });
+      });
+    },
+  });
+
+export const test = baseTest.extend({
 
   closeRecorder: async ({ context, toImpl }, run) => {
     await run(async () => {
@@ -76,9 +123,9 @@ export const test = contextTest.extend<CLITestArgs>({
     });
   },
 
-  openRecorder: async ({ page, recorderPageGetter }, run) => {
+  openRecorder: async ({ page, _enableRecorder, recorderPageGetter }, run) => {
     await run(async (options?: { testIdAttributeName?: string }) => {
-      await (page.context() as any)._enableRecorder({ language: 'javascript', mode: 'recording', ...options });
+      await _enableRecorder(options);
       return new Recorder(page, await recorderPageGetter());
     });
   },
@@ -100,6 +147,13 @@ class Recorder {
     this._highlightInstalled = false;
     this._actionReporterInstalled = false;
     this._actionPerformedCallback = () => { };
+  }
+
+  async setRecording(recording: boolean) {
+    const recordBtn = this.recorderPage.locator('.toolbar-button.record');
+    const toggled = await recordBtn.locator('.toggled').count() > 0;
+    if (toggled === recording)
+      await recordBtn.click();
   }
 
   async setContentAndWait(content: string, url: string = 'about:blank', frameCount: number = 1) {
@@ -124,6 +178,8 @@ class Recorder {
     await Promise.all([
       result,
       page.setContent(content)
+          // flaky in crx, retry
+          .catch(() => page.setContent(content))
     ]);
   }
 

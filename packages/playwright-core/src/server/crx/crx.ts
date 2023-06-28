@@ -42,6 +42,7 @@ export class Crx extends SdkObject {
     };
     const contextOptions: channels.BrowserNewContextParams = {
       noDefaultViewport: true,
+      viewport: undefined,
     };
     const options: BrowserOptions = {
       name: 'crx',
@@ -54,7 +55,7 @@ export class Crx extends SdkObject {
       originalLaunchOptions: {},
       artifactsDir: '.',
       downloadsPath: '.',
-      tracesDir: '.'
+      tracesDir: '.',
     };
     const browser = await CRBrowser.connect(this.attribution.playwright, transport, options);
     return new CrxApplication(browser, transport);
@@ -93,9 +94,11 @@ export class CrxApplication extends SdkObject {
   async attachAll(params: channels.CrxApplicationAttachAllParams) {
     const tabs = await chrome.tabs.query(params);
     const pages = await Promise.all(tabs.map(async tab => {
-      if (tab.id) return await this.attach(tab.id);
+      const baseUrl = chrome.runtime.getURL('');
+      if (tab.id && !tab.url?.startsWith(baseUrl))
+        return await this.attach(tab.id).catch(() => {});
     }));
-    return pages.filter((x): x is Page => !!x);
+    return pages.filter(Boolean) as Page[];
   }
 
   async detach(tabId: number) {
@@ -106,7 +109,7 @@ export class CrxApplication extends SdkObject {
   async newPage(params: channels.CrxApplicationNewPageParams) {
     const tab = await chrome.tabs.create({ url: 'about:blank', ...params });
     if (!tab.id) throw new Error(`No ID found for tab`);
-    return this.attach(tab.id);
+    return await this.attach(tab.id);
   }
 
   async close() {
@@ -122,8 +125,12 @@ export class CrxApplication extends SdkObject {
     if (!crPage) return;
 
     const pageOrError = await crPage.pageOrError();
+    if (pageOrError instanceof Error) throw pageOrError;
+
     // ensure we don't have any injected highlights
-    if (pageOrError instanceof Page) await pageOrError.hideHighlight();
+    await pageOrError.hideHighlight();
+    const closed = new Promise(x => pageOrError.once(Page.Events.Close, x));
     await this._transport.detach(targetId);
+    await closed;
   }
 }

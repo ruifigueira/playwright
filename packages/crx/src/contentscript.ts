@@ -15,7 +15,7 @@
  */
 
 import type { EventData } from '@recorder/recorderTypes';
-import type { RecorderMessage } from './crx/crxRecorder';
+import type { RecorderMessage } from '@playwright-core/server/crx/crxRecorderApp';
 
 (() => {
   // if not running as a chrome extension, skip this...

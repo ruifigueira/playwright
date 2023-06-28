@@ -15,7 +15,7 @@
  */
 
 import type { EventData, CallLog, Source } from '@recorder/recorderTypes';
-import type { RecorderMessage } from './crx/crxRecorder';
+import type { RecorderMessage } from '@playwright-core/server/crx/crxRecorderApp';
 
 let setPaused: (paused: boolean) => void;
 let setMode: (mode: 'none' | 'recording' | 'inspecting') => void;

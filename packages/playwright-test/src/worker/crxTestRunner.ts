@@ -21,6 +21,8 @@ import type { TestInfoImpl } from './testInfo';
 const toProcessParamFixtureKeys = [
   'page',
   'server',
+  'crx',
+  'context',
 ];
 
 const asIsSupportedParamFixtureKeys = [
@@ -55,7 +57,8 @@ export default class CrxTestRunner {
   }
 
   isCrxTest() {
-    return process.env.PWPAGE_IMPL === 'crx';
+    const mode = this._testInfo.project.metadata.mode ?? this._testInfo.config.metadata.mode;
+    return process.env.PWPAGE_IMPL === 'crx' && mode === 'crx';
   }
 
   isToSkip() {
@@ -64,8 +67,8 @@ export default class CrxTestRunner {
   }
 
   async run(testFunctionParams: any) {
-    const { page, server: serverObj } = testFunctionParams as any;
-    const worker = page?.extensionServiceWorker as Worker;
+    const { page, crx, server: serverObj } = testFunctionParams as any;
+    const worker = crx?.extensionServiceWorker ?? page?.extensionServiceWorker as Worker;
 
     if (!worker) throw new Error(`could not find extensionServiceWorker0`);
 

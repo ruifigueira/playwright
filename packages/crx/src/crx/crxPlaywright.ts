@@ -14,46 +14,9 @@
  * limitations under the License.
  */
 import { createInProcessPlaywright } from '@playwright-core/inProcessFactory';
-import { Recorder } from '@playwright-core/server/recorder';
-import { CrxRecorderApp } from './crxRecorder';
-import type { Page } from '@playwright-core/client/page';
 export type { Page } from '@playwright-core/client/page';
 
-export type Port = chrome.runtime.Port;
-
 const playwright = createInProcessPlaywright();
+
 export const { _crx } = playwright;
-
-const _pages: Map<number, Promise<Page>> = new Map();
-
-export async function getPage(tabId: number) {
-  const pagePromise = _pages.get(tabId);
-  return pagePromise ? await pagePromise : undefined;
-}
-
-export async function getOrCreatePage(tabId: number, port?: Port) {
-  if (_pages.has(tabId)) return _pages.get(tabId)!;
-
-  const pagePromise = createPage(tabId, port);
-  _pages.set(tabId, pagePromise);
-
-  return await pagePromise;
-}
-
-async function createPage(tabId: number, port?: Port) {
-  let recorderApp: CrxRecorderApp | undefined;
-
-  if (port) {
-    Recorder.setAppFactory(async recorder => {
-      recorderApp = new CrxRecorderApp(port, recorder);
-      return recorderApp;
-    });
-  }
-
-  const context = await playwright._crx.connect();
-  const page = context.pages()[0] ?? await context.newPage();
-
-  return page;
-}
-
 export default playwright;
