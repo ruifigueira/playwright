@@ -4148,6 +4148,8 @@ export type CrxApplicationInitializer = {
 export interface CrxApplicationEventTarget {
   on(event: 'hide', callback: (params: CrxApplicationHideEvent) => void): this;
   on(event: 'show', callback: (params: CrxApplicationShowEvent) => void): this;
+  on(event: 'attached', callback: (params: CrxApplicationAttachedEvent) => void): this;
+  on(event: 'detached', callback: (params: CrxApplicationDetachedEvent) => void): this;
   on(event: 'modeChanged', callback: (params: CrxApplicationModeChangedEvent) => void): this;
 }
 export interface CrxApplicationChannel extends CrxApplicationEventTarget, Channel {
@@ -4163,6 +4165,13 @@ export interface CrxApplicationChannel extends CrxApplicationEventTarget, Channe
 }
 export type CrxApplicationHideEvent = {};
 export type CrxApplicationShowEvent = {};
+export type CrxApplicationAttachedEvent = {
+  page: PageChannel,
+  tabId: number,
+};
+export type CrxApplicationDetachedEvent = {
+  tabId: number,
+};
 export type CrxApplicationModeChangedEvent = {
   mode: 'none' | 'recording' | 'inspecting',
 };
@@ -4268,6 +4277,8 @@ export type CrxApplicationCloseResult = void;
 export interface CrxApplicationEvents {
   'hide': CrxApplicationHideEvent;
   'show': CrxApplicationShowEvent;
+  'attached': CrxApplicationAttachedEvent;
+  'detached': CrxApplicationDetachedEvent;
   'modeChanged': CrxApplicationModeChangedEvent;
 }
 

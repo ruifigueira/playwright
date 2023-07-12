@@ -27,6 +27,7 @@ import { CrxTransport } from './crxTransport';
 import { Recorder } from '../recorder';
 import { CrxRecorderApp } from './crxRecorderApp';
 import type { CRPage } from '../chromium/crPage';
+import { BrowserContext } from '../browserContext';
 
 export class Crx extends SdkObject {
 
@@ -71,6 +72,8 @@ export class CrxApplication extends SdkObject {
   static Events = {
     RecorderHide: 'hide',
     RecorderShow: 'show',
+    Attached: 'attached',
+    Detached: 'detached',
     ModeChanged: 'modeChanged',
   };
 
@@ -99,10 +102,30 @@ export class CrxApplication extends SdkObject {
     });
     this._browser = browser;
     this._transport = transport;
+    this._context().on(BrowserContext.Events.Page, (page: Page) => {
+      const targetId = this._crPages().find(crPage => crPage._initializedPage === page)?._targetId;
+      if (!targetId) return;
+
+      const tabId = this._transport.getTabId(targetId);
+      if (!tabId) return;
+
+      page.on(Page.Events.Close, () => {
+        this.emit(CrxApplication.Events.Detached, { tabId });
+      });
+      this.emit(CrxApplication.Events.Attached, { page, tabId });
+    });
   }
 
   _context() {
     return this._browser._defaultContext!;
+  }
+
+  _crPages() {
+    return [...this._browser._crPages.values()];
+  }
+
+  _crPageByTargetId(targetId: string) {
+    return this._browser._crPages.get(targetId);
   }
 
   async showRecorder(options?: channels.CrxApplicationShowRecorderParams) {
@@ -125,7 +148,7 @@ export class CrxApplication extends SdkObject {
 
   async attach(tabId: number): Promise<Page> {
     const targetId = await this._transport.attach(tabId);
-    const crPage = this._browser?._crPages.get(targetId);
+    const crPage = this._crPageByTargetId(targetId);
     assert(crPage);
     const pageOrError = await crPage.pageOrError();
     if (pageOrError instanceof Error) throw pageOrError;
@@ -165,7 +188,7 @@ export class CrxApplication extends SdkObject {
   }
 
   async close() {
-    await Promise.all([...this._browser._crPages.keys()].map(this._doDetach));
+    await Promise.all(this._crPages().map(crPage => this._doDetach(crPage._targetId)));
     await this._browser.close();
     await this._transport.closeAndWait();
   }
@@ -173,7 +196,7 @@ export class CrxApplication extends SdkObject {
   private async _doDetach(targetId?: string) {
     if (!targetId) return;
 
-    const crPage = this._browser._crPages.get(targetId);
+    const crPage = this._crPageByTargetId(targetId);
     if (!crPage) return;
 
     const pageOrError = await crPage.pageOrError();

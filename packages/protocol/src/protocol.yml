@@ -3320,6 +3320,15 @@ CrxApplication:
     hide:
     show:
 
+    attached:
+      parameters:
+        page: Page
+        tabId: number
+
+    detached:
+      parameters:
+        tabId: number
+
     modeChanged:
       parameters:
         mode:

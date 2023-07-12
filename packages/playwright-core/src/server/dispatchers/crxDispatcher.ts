@@ -52,6 +52,12 @@ export class CrxApplicationDispatcher extends Dispatcher<CrxApplication, channel
     this.addObjectListener(CrxApplication.Events.ModeChanged, event => {
       this._dispatchEvent('modeChanged', event);
     });
+    this.addObjectListener(CrxApplication.Events.Attached, ({ tabId, page }) => {
+      this._dispatchEvent('attached', { tabId, page: PageDispatcher.from(this._context, page) });
+    });
+    this.addObjectListener(CrxApplication.Events.Detached, ({ tabId }) => {
+      this._dispatchEvent('detached', { tabId });
+    });
   }
 
   async attach(params: channels.CrxApplicationAttachParams): Promise<channels.CrxApplicationAttachResult> {

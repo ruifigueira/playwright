@@ -92,6 +92,12 @@ export class CrxApplication extends ChannelOwner<channels.CrxApplicationChannel>
     super(parent, type, guid, initializer);
     this._context = BrowserContext.from(initializer.context);
     this.recorder = new CrxRecorder(this._channel);
+    this._channel.on('attached', ({ page, tabId }) => {
+      this.emit('attached', { tabId, page: Page.from(page) });
+    });
+    this._channel.on('detached', ({ tabId }) => {
+      this.emit('detached', tabId);
+    });
   }
 
   context() {

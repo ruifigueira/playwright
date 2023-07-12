@@ -209,3 +209,17 @@ Optional. Whether the tab should become the selected tab in the window. Defaults
 ## property: CrxApplication.recorder
 * since: v1.**
 - type: <[CrxRecorder]>
+
+## event: CrxApplication.attached
+* since: v1.**
+- argument: <[Object]>
+  - `page` <[Page]> attached page
+  - `tabId` <[int]> page tab ID
+
+Emitted when a page is attached.
+
+## event: CrxApplication.detached
+* since: v1.**
+- argument: <[int]>
+
+Emitted when a page is detached.

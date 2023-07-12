@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { Page } from '@playwright/experimental-crx';
 import { test, expect } from './crxTest';
 
 type Tab = chrome.tabs.Tab;
@@ -135,4 +136,32 @@ test.fixme('should remove page if tab is externally detached', async ({ crx }) =
   expect(await page.evaluate(() => 42)).toBe(42);
   await new Promise<void>(x => chrome.debugger.detach({ tabId }, x));
   expect(crx.pages()).not.toContain(page);
+});
+
+test(`should fire attached event`, async ({ crx }) => {
+  const { id: tabId } = await chrome.tabs.create({ url: 'about:blank' });
+  const attachedPromise = new Promise<{ tabId: number, page: Page }>(r => crx.on('attached', r));
+  const page = await crx.attach(tabId!);
+  const { tabId: actualTabId, page: actualPage } = await attachedPromise;
+  expect(actualPage).toBe(page);
+  expect(actualTabId).toBe(tabId);
+});
+
+test(`should fire detached event`, async ({ crx }) => {
+  const { id: tabId } = await chrome.tabs.create({ url: 'about:blank' });
+  const page = await crx.attach(tabId!);
+  const detachedPromise = new Promise<number>(r => crx.on('detached', r));
+  await crx.detach(page);
+  const actualTabId = await detachedPromise;
+  expect(actualTabId).toBe(tabId);
+});
+
+test('should fire attached event on popup pages', async ({ crx, page, server }) => {
+  await page.goto('about:blank');
+  const [{ page: popup, tabId }] = await Promise.all([
+    new Promise<{ tabId: number, page: Page }>(r => crx.on('attached', r)),
+    page.evaluate(url => { window.open(url); }, server.EMPTY_PAGE),
+  ]);
+  expect(await popup.opener()).toBe(page);
+  expect((await chrome.tabs.get(tabId)).url).toBe(server.EMPTY_PAGE);
 });

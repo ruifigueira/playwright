@@ -2286,6 +2286,13 @@ scheme.CrxApplicationInitializer = tObject({
 });
 scheme.CrxApplicationHideEvent = tOptional(tObject({}));
 scheme.CrxApplicationShowEvent = tOptional(tObject({}));
+scheme.CrxApplicationAttachedEvent = tObject({
+  page: tChannel(['Page']),
+  tabId: tNumber,
+});
+scheme.CrxApplicationDetachedEvent = tObject({
+  tabId: tNumber,
+});
 scheme.CrxApplicationModeChangedEvent = tObject({
   mode: tEnum(['none', 'recording', 'inspecting']),
 });
