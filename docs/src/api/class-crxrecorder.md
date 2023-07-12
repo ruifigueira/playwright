@@ -2,6 +2,10 @@
 * since: v1.**
 * langs: js
 
+## property: CrxRecorder.mode
+* since: v1.**8**
+- type: <[RecordMode]<"none"|"recording"|"inspecting">>
+
 ## async method: CrxRecorder.show
 * since: v1.**
 
@@ -35,3 +39,10 @@ Emitted when recorder is hidden.
 - argument: <[CrxRecorder]>
 
 Emitted when recorder is shown.
+
+## event: CrxRecorder.modeChanged
+* since: v1.**
+- argument: <[Object]>
+  - `mode` <[RecordMode]<"none"|"recording"|"inspecting">> mode
+
+Emitted when recorder mode changes.

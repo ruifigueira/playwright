@@ -4148,6 +4148,7 @@ export type CrxApplicationInitializer = {
 export interface CrxApplicationEventTarget {
   on(event: 'hide', callback: (params: CrxApplicationHideEvent) => void): this;
   on(event: 'show', callback: (params: CrxApplicationShowEvent) => void): this;
+  on(event: 'modeChanged', callback: (params: CrxApplicationModeChangedEvent) => void): this;
 }
 export interface CrxApplicationChannel extends CrxApplicationEventTarget, Channel {
   _type_CrxApplication: boolean;
@@ -4162,6 +4163,9 @@ export interface CrxApplicationChannel extends CrxApplicationEventTarget, Channe
 }
 export type CrxApplicationHideEvent = {};
 export type CrxApplicationShowEvent = {};
+export type CrxApplicationModeChangedEvent = {
+  mode: 'none' | 'recording' | 'inspecting',
+};
 export type CrxApplicationAttachParams = {
   tabId: number,
 };
@@ -4264,6 +4268,7 @@ export type CrxApplicationCloseResult = void;
 export interface CrxApplicationEvents {
   'hide': CrxApplicationHideEvent;
   'show': CrxApplicationShowEvent;
+  'modeChanged': CrxApplicationModeChangedEvent;
 }
 
 // ----------- Android -----------

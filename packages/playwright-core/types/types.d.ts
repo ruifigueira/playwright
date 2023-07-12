@@ -16812,6 +16812,16 @@ export interface CrxRecorder {
   on(event: 'show', listener: (crxRecorder: CrxRecorder) => void): this;
 
   /**
+   * Emitted when recorder mode changes.
+   */
+  on(event: 'modechanged', listener: (data: {
+    /**
+     * mode
+     */
+    mode: "none"|"recording"|"inspecting";
+  }) => void): this;
+
+  /**
    * Adds an event listener that will be automatically removed after it is triggered once. See `addListener` for more information about this event.
    */
   once(event: 'hide', listener: (crxRecorder: CrxRecorder) => void): this;
@@ -16822,6 +16832,16 @@ export interface CrxRecorder {
   once(event: 'show', listener: (crxRecorder: CrxRecorder) => void): this;
 
   /**
+   * Adds an event listener that will be automatically removed after it is triggered once. See `addListener` for more information about this event.
+   */
+  once(event: 'modechanged', listener: (data: {
+    /**
+     * mode
+     */
+    mode: "none"|"recording"|"inspecting";
+  }) => void): this;
+
+  /**
    * Emitted when recorder is hidden.
    */
   addListener(event: 'hide', listener: (crxRecorder: CrxRecorder) => void): this;
@@ -16830,6 +16850,16 @@ export interface CrxRecorder {
    * Emitted when recorder is shown.
    */
   addListener(event: 'show', listener: (crxRecorder: CrxRecorder) => void): this;
+
+  /**
+   * Emitted when recorder mode changes.
+   */
+  addListener(event: 'modechanged', listener: (data: {
+    /**
+     * mode
+     */
+    mode: "none"|"recording"|"inspecting";
+  }) => void): this;
 
   /**
    * Removes an event listener added by `on` or `addListener`.
@@ -16844,12 +16874,32 @@ export interface CrxRecorder {
   /**
    * Removes an event listener added by `on` or `addListener`.
    */
+  removeListener(event: 'modechanged', listener: (data: {
+    /**
+     * mode
+     */
+    mode: "none"|"recording"|"inspecting";
+  }) => void): this;
+
+  /**
+   * Removes an event listener added by `on` or `addListener`.
+   */
   off(event: 'hide', listener: (crxRecorder: CrxRecorder) => void): this;
 
   /**
    * Removes an event listener added by `on` or `addListener`.
    */
   off(event: 'show', listener: (crxRecorder: CrxRecorder) => void): this;
+
+  /**
+   * Removes an event listener added by `on` or `addListener`.
+   */
+  off(event: 'modechanged', listener: (data: {
+    /**
+     * mode
+     */
+    mode: "none"|"recording"|"inspecting";
+  }) => void): this;
 
   /**
    * Emitted when recorder is hidden.
@@ -16860,6 +16910,16 @@ export interface CrxRecorder {
    * Emitted when recorder is shown.
    */
   prependListener(event: 'show', listener: (crxRecorder: CrxRecorder) => void): this;
+
+  /**
+   * Emitted when recorder mode changes.
+   */
+  prependListener(event: 'modechanged', listener: (data: {
+    /**
+     * mode
+     */
+    mode: "none"|"recording"|"inspecting";
+  }) => void): this;
 
   hide(): Promise<void>;
 
@@ -16875,6 +16935,8 @@ export interface CrxRecorder {
 
     testIdAttributeName?: null|string;
   }): Promise<void>;
+
+  mode: "none"|"recording"|"inspecting";
 }
 
 /**

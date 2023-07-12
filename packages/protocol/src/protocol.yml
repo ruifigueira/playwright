@@ -3320,6 +3320,15 @@ CrxApplication:
     hide:
     show:
 
+    modeChanged:
+      parameters:
+        mode:
+          type: enum
+          literals:
+          - 'none'
+          - 'recording'
+          - 'inspecting'
+
 Android:
   type: interface
 
