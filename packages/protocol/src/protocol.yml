@@ -492,6 +492,7 @@ ContextOptions:
       literals:
       - allow
       - block
+    keyboardLayout: string?
 
 LocalUtils:
   type: interface
@@ -1435,6 +1436,10 @@ Page:
       flags:
         slowMo: true
         snapshot: true
+
+    keyboardChangeLayout:
+      parameters:
+        layoutName: string
 
     mouseMove:
       parameters:
@@ -3176,6 +3181,7 @@ Electron:
         strictSelectors: boolean?
         timezoneId: string?
         tracesDir: string?
+        keyboardLayout: string?
 
       returns:
         electronApplication: ElectronApplication
