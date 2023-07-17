@@ -12748,6 +12748,11 @@ export interface BrowserType<Unused = {}> {
     javaScriptEnabled?: boolean;
 
     /**
+     * Keyboard layout.
+     */
+    keyboardLayout?: string;
+
+    /**
      * Specify user locale, for example `en-GB`, `de-DE`, etc. Locale will affect `navigator.language` value,
      * `Accept-Language` request header value as well as number and date formatting rules. Defaults to the system default
      * locale. Learn more about emulation in our [emulation guide](https://playwright.dev/docs/emulation#locale--timezone).
@@ -12958,7 +12963,7 @@ export interface BrowserType<Unused = {}> {
     videosPath?: string;
 
     /**
-     * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport.  Use `null` to disable the consistent
+     * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport. Use `null` to disable the consistent
      * viewport emulation. Learn more about [viewport emulation](https://playwright.dev/docs/emulation#viewport).
      *
      * **NOTE** The `null` value opts out from the default presets, makes viewport depend on the host window size defined
@@ -14155,6 +14160,11 @@ export interface AndroidDevice {
     javaScriptEnabled?: boolean;
 
     /**
+     * Keyboard layout.
+     */
+    keyboardLayout?: string;
+
+    /**
      * Specify user locale, for example `en-GB`, `de-DE`, etc. Locale will affect `navigator.language` value,
      * `Accept-Language` request header value as well as number and date formatting rules. Defaults to the system default
      * locale. Learn more about emulation in our [emulation guide](https://playwright.dev/docs/emulation#locale--timezone).
@@ -14348,7 +14358,7 @@ export interface AndroidDevice {
     videosPath?: string;
 
     /**
-     * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport.  Use `null` to disable the consistent
+     * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport. Use `null` to disable the consistent
      * viewport emulation. Learn more about [viewport emulation](https://playwright.dev/docs/emulation#viewport).
      *
      * **NOTE** The `null` value opts out from the default presets, makes viewport depend on the host window size defined
@@ -16030,6 +16040,11 @@ export interface Browser extends EventEmitter {
     javaScriptEnabled?: boolean;
 
     /**
+     * Keyboard layout.
+     */
+    keyboardLayout?: string;
+
+    /**
      * Specify user locale, for example `en-GB`, `de-DE`, etc. Locale will affect `navigator.language` value,
      * `Accept-Language` request header value as well as number and date formatting rules. Defaults to the system default
      * locale. Learn more about emulation in our [emulation guide](https://playwright.dev/docs/emulation#locale--timezone).
@@ -16283,7 +16298,7 @@ export interface Browser extends EventEmitter {
     videosPath?: string;
 
     /**
-     * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport.  Use `null` to disable the consistent
+     * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport. Use `null` to disable the consistent
      * viewport emulation. Learn more about [viewport emulation](https://playwright.dev/docs/emulation#viewport).
      *
      * **NOTE** The `null` value opts out from the default presets, makes viewport depend on the host window size defined
@@ -16898,6 +16913,11 @@ export interface Electron {
      * Whether to ignore HTTPS errors when sending network requests. Defaults to `false`.
      */
     ignoreHTTPSErrors?: boolean;
+
+    /**
+     * Keyboard layout.
+     */
+    keyboardLayout?: string;
 
     /**
      * Specify user locale, for example `en-GB`, `de-DE`, etc. Locale will affect `navigator.language` value,
@@ -17543,6 +17563,12 @@ export interface FrameLocator {
  *
  */
 export interface Keyboard {
+  /**
+   * Changes keyboard layout.
+   * @param layoutName
+   */
+  changeLayout(layoutName: string): Promise<void>;
+
   /**
    * Dispatches a `keydown` event.
    *
@@ -19167,6 +19193,11 @@ export interface BrowserContextOptions {
   javaScriptEnabled?: boolean;
 
   /**
+   * Keyboard layout.
+   */
+  keyboardLayout?: string;
+
+  /**
    * Specify user locale, for example `en-GB`, `de-DE`, etc. Locale will affect `navigator.language` value,
    * `Accept-Language` request header value as well as number and date formatting rules. Defaults to the system default
    * locale. Learn more about emulation in our [emulation guide](https://playwright.dev/docs/emulation#locale--timezone).
@@ -19420,7 +19451,7 @@ export interface BrowserContextOptions {
   videosPath?: string;
 
   /**
-   * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport.  Use `null` to disable the consistent
+   * Emulates consistent viewport for each page. Defaults to an 1280x720 viewport. Use `null` to disable the consistent
    * viewport emulation. Learn more about [viewport emulation](https://playwright.dev/docs/emulation#viewport).
    *
    * **NOTE** The `null` value opts out from the default presets, makes viewport depend on the host window size defined

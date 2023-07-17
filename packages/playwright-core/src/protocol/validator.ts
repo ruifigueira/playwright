@@ -566,6 +566,7 @@ scheme.BrowserTypeLaunchPersistentContextParams = tObject({
   recordHar: tOptional(tType('RecordHarOptions')),
   strictSelectors: tOptional(tBoolean),
   serviceWorkers: tOptional(tEnum(['allow', 'block'])),
+  keyboardLayout: tOptional(tString),
   userDataDir: tString,
   slowMo: tOptional(tNumber),
 });
@@ -642,6 +643,7 @@ scheme.BrowserNewContextParams = tObject({
   recordHar: tOptional(tType('RecordHarOptions')),
   strictSelectors: tOptional(tBoolean),
   serviceWorkers: tOptional(tEnum(['allow', 'block'])),
+  keyboardLayout: tOptional(tString),
   proxy: tOptional(tObject({
     server: tString,
     bypass: tOptional(tString),
@@ -703,6 +705,7 @@ scheme.BrowserNewContextForReuseParams = tObject({
   recordHar: tOptional(tType('RecordHarOptions')),
   strictSelectors: tOptional(tBoolean),
   serviceWorkers: tOptional(tEnum(['allow', 'block'])),
+  keyboardLayout: tOptional(tString),
   proxy: tOptional(tObject({
     server: tString,
     bypass: tOptional(tString),
@@ -1117,6 +1120,10 @@ scheme.PageKeyboardPressParams = tObject({
   delay: tOptional(tNumber),
 });
 scheme.PageKeyboardPressResult = tOptional(tObject({}));
+scheme.PageKeyboardChangeLayoutParams = tObject({
+  layoutName: tString,
+});
+scheme.PageKeyboardChangeLayoutResult = tOptional(tObject({}));
 scheme.PageMouseMoveParams = tObject({
   x: tNumber,
   y: tNumber,
@@ -2241,6 +2248,7 @@ scheme.ElectronLaunchParams = tObject({
   strictSelectors: tOptional(tBoolean),
   timezoneId: tOptional(tString),
   tracesDir: tOptional(tString),
+  keyboardLayout: tOptional(tString),
 });
 scheme.ElectronLaunchResult = tObject({
   electronApplication: tChannel(['ElectronApplication']),
@@ -2455,6 +2463,7 @@ scheme.AndroidDeviceLaunchBrowserParams = tObject({
   recordHar: tOptional(tType('RecordHarOptions')),
   strictSelectors: tOptional(tBoolean),
   serviceWorkers: tOptional(tEnum(['allow', 'block'])),
+  keyboardLayout: tOptional(tString),
   pkg: tOptional(tString),
   args: tOptional(tArray(tString)),
   proxy: tOptional(tObject({
