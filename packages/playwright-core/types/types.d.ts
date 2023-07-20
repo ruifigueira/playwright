@@ -3219,6 +3219,21 @@ export interface Page {
   }): Promise<boolean>;
 
   /**
+   * Obtains the keyboard with a specific layout.
+   * @param layoutName Keyboard layout code. Currently, the following values are supported:
+   *
+   * | Values | Name |
+   * | :- | :- |
+   * | `us`, `en-US` | [US keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+   * | `es`, `es-ES` | [Spanish keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdsp) <!-- 0000040A --> |
+   * | `br`, `pt-BR` | [Portuguese (Brazil ABNT) keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdbr_1) <!-- 00000416 --> |
+   * | `latam`, `es-MX` | [Latin American keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdla) <!-- 0000080A --> |
+   * | `pt`, `pt-PT` | [Portuguese keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdpo) <!-- 00000816 --> |
+   * | `el`, `el-GR` | [Greek keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdhe) <!-- 00000408 --> |
+   */
+  keyboardFor(layoutName: string): Keyboard;
+
+  /**
    * The method returns an element locator that can be used to perform actions on this page / frame. Locator is resolved
    * to the element immediately before performing an action, so a series of actions on the same locator can in fact be
    * performed on different DOM elements. That would happen if the DOM structure between those actions has changed.
@@ -17599,21 +17614,6 @@ export interface FrameLocator {
  *
  */
 export interface Keyboard {
-  /**
-   * Changes keyboard layout.
-   * @param layoutName Keyboard layout code. Currently, the following values are supported:
-   *
-   * | Values | Name |
-   * | :- | :- |
-   * | `us`, `en-US` | [US keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
-   * | `es`, `es-ES` | [Spanish keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdsp) <!-- 0000040A --> |
-   * | `br`, `pt-BR` | [Portuguese (Brazil ABNT) keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdbr_1) <!-- 00000416 --> |
-   * | `latam`, `es-MX` | [Latin American keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdla) <!-- 0000080A --> |
-   * | `pt`, `pt-PT` | [Portuguese keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdpo) <!-- 00000816 --> |
-   * | `el`, `el-GR` | [Greek keyboard](https://learn.microsoft.com/en-us/globalization/keyboards/kbdhe) <!-- 00000408 --> |
-   */
-  changeLayout(layoutName: string): Promise<void>;
-
   /**
    * Dispatches a `keydown` event.
    *

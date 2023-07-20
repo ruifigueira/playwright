@@ -21,33 +21,31 @@ import type { Page } from './page';
 
 export class Keyboard implements api.Keyboard {
   private _page: Page;
+  private _keyboardLayout?: string;
 
-  constructor(page: Page) {
+  constructor(page: Page, keyboardLayout?: string) {
     this._page = page;
+    this._keyboardLayout = keyboardLayout;
   }
 
   async down(key: string) {
-    await this._page._channel.keyboardDown({ key });
+    await this._page._channel.keyboardDown({ key, keyboardLayout: this._keyboardLayout });
   }
 
   async up(key: string) {
-    await this._page._channel.keyboardUp({ key });
+    await this._page._channel.keyboardUp({ key, keyboardLayout: this._keyboardLayout });
   }
 
   async insertText(text: string) {
-    await this._page._channel.keyboardInsertText({ text });
+    await this._page._channel.keyboardInsertText({ text, keyboardLayout: this._keyboardLayout });
   }
 
   async type(text: string, options: channels.PageKeyboardTypeOptions = {}) {
-    await this._page._channel.keyboardType({ text, ...options });
+    await this._page._channel.keyboardType({ text, ...options, keyboardLayout: this._keyboardLayout });
   }
 
   async press(key: string, options: channels.PageKeyboardPressOptions = {}) {
-    await this._page._channel.keyboardPress({ key, ...options });
-  }
-
-  async changeLayout(layoutName: string): Promise<void> {
-    await this._page._channel.keyboardChangeLayout({ layoutName });
+    await this._page._channel.keyboardPress({ key, ...options, keyboardLayout: this._keyboardLayout });
   }
 }
 

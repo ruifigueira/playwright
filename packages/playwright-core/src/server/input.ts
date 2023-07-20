@@ -47,10 +47,10 @@ export class Keyboard {
   private _page: Page;
   private _keyboardLayout: Map<string, KeyDescription>;
 
-  constructor(raw: RawKeyboard, page: Page) {
+  constructor(raw: RawKeyboard, page: Page, keyboardLayout?: string) {
     this._raw = raw;
     this._page = page;
-    this._keyboardLayout = getByLocale(page._browserContext._options.keyboardLayout);
+    this._keyboardLayout = getByLocale(keyboardLayout);
   }
 
   changeLayout(layoutName: string) {
@@ -254,7 +254,7 @@ const cache = new Map<string, Map<string, KeyDescription>>(
     [[defaultKlid, defaultKeyboard]]
 );
 
-function getByLocale(locale?: string): Map<string, KeyDescription> {
+export function getByLocale(locale?: string): Map<string, KeyDescription> {
   if (!locale) return defaultKeyboard;
 
   const normalizedLocale = normalizeLocale(locale);

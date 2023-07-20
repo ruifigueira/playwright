@@ -1100,30 +1100,31 @@ scheme.PageSetViewportSizeParams = tObject({
 scheme.PageSetViewportSizeResult = tOptional(tObject({}));
 scheme.PageKeyboardDownParams = tObject({
   key: tString,
+  keyboardLayout: tOptional(tString),
 });
 scheme.PageKeyboardDownResult = tOptional(tObject({}));
 scheme.PageKeyboardUpParams = tObject({
   key: tString,
+  keyboardLayout: tOptional(tString),
 });
 scheme.PageKeyboardUpResult = tOptional(tObject({}));
 scheme.PageKeyboardInsertTextParams = tObject({
   text: tString,
+  keyboardLayout: tOptional(tString),
 });
 scheme.PageKeyboardInsertTextResult = tOptional(tObject({}));
 scheme.PageKeyboardTypeParams = tObject({
   text: tString,
   delay: tOptional(tNumber),
+  keyboardLayout: tOptional(tString),
 });
 scheme.PageKeyboardTypeResult = tOptional(tObject({}));
 scheme.PageKeyboardPressParams = tObject({
   key: tString,
   delay: tOptional(tNumber),
+  keyboardLayout: tOptional(tString),
 });
 scheme.PageKeyboardPressResult = tOptional(tObject({}));
-scheme.PageKeyboardChangeLayoutParams = tObject({
-  layoutName: tString,
-});
-scheme.PageKeyboardChangeLayoutResult = tOptional(tObject({}));
 scheme.PageMouseMoveParams = tObject({
   x: tNumber,
   y: tNumber,

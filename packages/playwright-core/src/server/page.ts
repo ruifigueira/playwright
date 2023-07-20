@@ -169,6 +169,7 @@ export class Page extends SdkObject {
   _video: Artifact | null = null;
   _opener: Page | undefined;
   private _isServerSideOnly = false;
+  private _keyboardsPerLayout = new  Map<string, input.Keyboard>();
 
   // Aiming at 25 fps by default - each frame is 40ms, but we give some slack with 35ms.
   // When throttling for tracing, 200ms between frames, except for 10 frames around the action.
@@ -180,7 +181,7 @@ export class Page extends SdkObject {
     this._delegate = delegate;
     this._browserContext = browserContext;
     this.accessibility = new accessibility.Accessibility(delegate.getAccessibilityTree.bind(delegate));
-    this.keyboard = new input.Keyboard(delegate.rawKeyboard, this);
+    this.keyboard = new input.Keyboard(delegate.rawKeyboard, this, browserContext._options.keyboardLayout);
     this.mouse = new input.Mouse(delegate.rawMouse, this);
     this.touchscreen = new input.Touchscreen(delegate.rawTouchscreen, this);
     this._timeoutSettings = new TimeoutSettings(browserContext._timeoutSettings);
@@ -269,6 +270,16 @@ export class Page extends SdkObject {
     ]);
 
     await this._delegate.resetForReuse();
+  }
+
+  keyboardFor(keyboardLayout?: string) {
+    if (!keyboardLayout) return this.keyboard;
+    let keyboard = this._keyboardsPerLayout.get(keyboardLayout);
+    if (!keyboard) {
+      keyboard = new input.Keyboard(this._delegate.rawKeyboard, this, keyboardLayout);
+      this._keyboardsPerLayout.set(keyboardLayout, keyboard);
+    }
+    return keyboard;
   }
 
   _didClose() {

@@ -2681,6 +2681,18 @@ Returns whether the element is [visible](../actionability.md#visible). [`option:
 * since: v1.8
 - type: <[Keyboard]>
 
+## method: Page.keyboardFor
+* since: v1.**
+- returns: <[Keyboard]>
+
+Obtains the keyboard with a specific layout.
+
+### param: Page.keyboardFor.keyboardFor
+* since: v1.**
+- `layoutName` <[string]>
+
+%%-template-keyboard-layouts-%%
+
 ## method: Page.locator
 * since: v1.14
 - returns: <[Locator]>

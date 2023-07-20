@@ -94,6 +94,8 @@ export class Page extends ChannelOwner<channels.PageChannel> implements api.Page
   private _video: Video | null = null;
   readonly _opener: Page | null;
 
+  private _keyboardsPerLayout = new Map<string, Keyboard>();
+
   static from(page: channels.PageChannel): Page {
     return (page as any)._object;
   }
@@ -153,6 +155,16 @@ export class Page extends ChannelOwner<channels.PageChannel> implements api.Page
       [Events.Page.RequestFailed, 'requestFailed'],
       [Events.Page.FileChooser, 'fileChooser'],
     ]));
+  }
+
+  keyboardFor(layoutName: string) {
+    if (!layoutName) return this.keyboard;
+    let keyboard = this._keyboardsPerLayout.get(layoutName);
+    if (!keyboard) {
+      keyboard = new Keyboard(this, layoutName);
+      this._keyboardsPerLayout.set(layoutName, keyboard);
+    }
+    return keyboard;
   }
 
   private _onFrameAttached(frame: Frame) {

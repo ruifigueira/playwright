@@ -1404,6 +1404,7 @@ Page:
     keyboardDown:
       parameters:
         key: string
+        keyboardLayout: string?
       flags:
         slowMo: true
         snapshot: true
@@ -1411,6 +1412,7 @@ Page:
     keyboardUp:
       parameters:
         key: string
+        keyboardLayout: string?
       flags:
         slowMo: true
         snapshot: true
@@ -1418,6 +1420,7 @@ Page:
     keyboardInsertText:
       parameters:
         text: string
+        keyboardLayout: string?
       flags:
         slowMo: true
         snapshot: true
@@ -1426,6 +1429,7 @@ Page:
       parameters:
         text: string
         delay: number?
+        keyboardLayout: string?
       flags:
         slowMo: true
         snapshot: true
@@ -1434,13 +1438,10 @@ Page:
       parameters:
         key: string
         delay: number?
+        keyboardLayout: string?
       flags:
         slowMo: true
         snapshot: true
-
-    keyboardChangeLayout:
-      parameters:
-        layoutName: string
 
     mouseMove:
       parameters:

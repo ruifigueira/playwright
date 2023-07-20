@@ -214,27 +214,23 @@ export class PageDispatcher extends Dispatcher<Page, channels.PageChannel, Brows
   }
 
   async keyboardDown(params: channels.PageKeyboardDownParams, metadata: CallMetadata): Promise<void> {
-    await this._page.keyboard.down(params.key);
+    await this._page.keyboardFor(params.keyboardLayout).down(params.key);
   }
 
   async keyboardUp(params: channels.PageKeyboardUpParams, metadata: CallMetadata): Promise<void> {
-    await this._page.keyboard.up(params.key);
+    await this._page.keyboardFor(params.keyboardLayout).up(params.key);
   }
 
   async keyboardInsertText(params: channels.PageKeyboardInsertTextParams, metadata: CallMetadata): Promise<void> {
-    await this._page.keyboard.insertText(params.text);
+    await this._page.keyboardFor(params.keyboardLayout).insertText(params.text);
   }
 
   async keyboardType(params: channels.PageKeyboardTypeParams, metadata: CallMetadata): Promise<void> {
-    await this._page.keyboard.type(params.text, params);
+    await this._page.keyboardFor(params.keyboardLayout).type(params.text, params);
   }
 
   async keyboardPress(params: channels.PageKeyboardPressParams, metadata: CallMetadata): Promise<void> {
-    await this._page.keyboard.press(params.key, params);
-  }
-
-  async keyboardChangeLayout(params: channels.PageKeyboardChangeLayoutParams, metadata?: CallMetadata): Promise<void> {
-    this._page.keyboard.changeLayout(params.layoutName);
+    await this._page.keyboardFor(params.keyboardLayout).press(params.key, params);
   }
 
   async mouseMove(params: channels.PageMouseMoveParams, metadata: CallMetadata): Promise<void> {

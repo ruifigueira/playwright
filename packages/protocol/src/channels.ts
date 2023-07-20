@@ -1760,7 +1760,6 @@ export interface PageChannel extends PageEventTarget, EventTargetChannel {
   keyboardInsertText(params: PageKeyboardInsertTextParams, metadata?: CallMetadata): Promise<PageKeyboardInsertTextResult>;
   keyboardType(params: PageKeyboardTypeParams, metadata?: CallMetadata): Promise<PageKeyboardTypeResult>;
   keyboardPress(params: PageKeyboardPressParams, metadata?: CallMetadata): Promise<PageKeyboardPressResult>;
-  keyboardChangeLayout(params: PageKeyboardChangeLayoutParams, metadata?: CallMetadata): Promise<PageKeyboardChangeLayoutResult>;
   mouseMove(params: PageMouseMoveParams, metadata?: CallMetadata): Promise<PageMouseMoveResult>;
   mouseDown(params: PageMouseDownParams, metadata?: CallMetadata): Promise<PageMouseDownResult>;
   mouseUp(params: PageMouseUpParams, metadata?: CallMetadata): Promise<PageMouseUpResult>;
@@ -2020,48 +2019,48 @@ export type PageSetViewportSizeOptions = {
 export type PageSetViewportSizeResult = void;
 export type PageKeyboardDownParams = {
   key: string,
+  keyboardLayout?: string,
 };
 export type PageKeyboardDownOptions = {
-
+  keyboardLayout?: string,
 };
 export type PageKeyboardDownResult = void;
 export type PageKeyboardUpParams = {
   key: string,
+  keyboardLayout?: string,
 };
 export type PageKeyboardUpOptions = {
-
+  keyboardLayout?: string,
 };
 export type PageKeyboardUpResult = void;
 export type PageKeyboardInsertTextParams = {
   text: string,
+  keyboardLayout?: string,
 };
 export type PageKeyboardInsertTextOptions = {
-
+  keyboardLayout?: string,
 };
 export type PageKeyboardInsertTextResult = void;
 export type PageKeyboardTypeParams = {
   text: string,
   delay?: number,
+  keyboardLayout?: string,
 };
 export type PageKeyboardTypeOptions = {
   delay?: number,
+  keyboardLayout?: string,
 };
 export type PageKeyboardTypeResult = void;
 export type PageKeyboardPressParams = {
   key: string,
   delay?: number,
+  keyboardLayout?: string,
 };
 export type PageKeyboardPressOptions = {
   delay?: number,
+  keyboardLayout?: string,
 };
 export type PageKeyboardPressResult = void;
-export type PageKeyboardChangeLayoutParams = {
-  layoutName: string,
-};
-export type PageKeyboardChangeLayoutOptions = {
-
-};
-export type PageKeyboardChangeLayoutResult = void;
 export type PageMouseMoveParams = {
   x: number,
   y: number,

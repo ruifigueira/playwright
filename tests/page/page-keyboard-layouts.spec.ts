@@ -16,14 +16,14 @@
 
 import { test as it, expect } from './pageTest';
 
+it.beforeEach(async ({ page, server, toImpl }) => {
+  await page.goto(server.PREFIX + '/input/keyboard.html');
+});
+
 it.describe(`greek keyboard layout`, () => {
-  it.beforeEach(async ({ page, server, toImpl }) => {
-    await page.keyboard.changeLayout('el-GR');
-    await page.goto(server.PREFIX + '/input/keyboard.html');
-  });
 
   it(`should fire key events on α`, async ({ page }) => {
-    await page.keyboard.press('α');
+    await page.keyboardFor('el-GR').press('α');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: α KeyA 65 []',
           'Keypress: α KeyA 945 945 []',
@@ -31,7 +31,7 @@ it.describe(`greek keyboard layout`, () => {
   });
 
   it(`should type ε on KeyE`, async ({ page }) => {
-    await page.keyboard.press('KeyE');
+    await page.keyboardFor('el-GR').press('KeyE');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: ε KeyE 69 []',
           'Keypress: ε KeyE 949 949 []',
@@ -39,7 +39,7 @@ it.describe(`greek keyboard layout`, () => {
   });
 
   it(`should fire key events on Σ`, async ({ page }) => {
-    await page.keyboard.press('Σ');
+    await page.keyboardFor('el-GR').press('Σ');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: Σ KeyS 83 []',
           'Keypress: Σ KeyS 931 931 []',
@@ -47,7 +47,7 @@ it.describe(`greek keyboard layout`, () => {
   });
 
   it(`should type Δ on Shift+KeyD`, async ({ page }) => {
-    await page.keyboard.press('Shift+KeyD');
+    await page.keyboardFor('el-GR').press('Shift+KeyD');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: Shift ShiftLeft 16 [Shift]',
           'Keydown: Δ KeyD 68 [Shift]',
@@ -59,13 +59,9 @@ it.describe(`greek keyboard layout`, () => {
 });
 
 it.describe(`portuguese keyboard layout`, () => {
-  it.beforeEach(async ({ page, server, toImpl }) => {
-    await page.keyboard.changeLayout('pt-PT');
-    await page.goto(server.PREFIX + '/input/keyboard.html');
-  });
 
   it(`should type backslash on Backquote`, async ({ page }) => {
-    await page.keyboard.press('Backquote');
+    await page.keyboardFor('pt-PT').press('Backquote');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: \\ Backquote 220 []',
           'Keypress: \\ Backquote 92 92 []',
@@ -73,7 +69,7 @@ it.describe(`portuguese keyboard layout`, () => {
   });
 
   it(`should type ! on Shift+Digit1`, async ({ page }) => {
-    await page.keyboard.press('Shift+Digit1');
+    await page.keyboardFor('pt-PT').press('Shift+Digit1');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: Shift ShiftLeft 16 [Shift]',
           'Keydown: ! Digit1 49 [Shift]',
@@ -84,13 +80,9 @@ it.describe(`portuguese keyboard layout`, () => {
 });
 
 it.describe(`us keyboard layout`, () => {
-  it.beforeEach(async ({ page, server, toImpl }) => {
-    await page.keyboard.changeLayout('en-US');
-    await page.goto(server.PREFIX + '/input/keyboard.html');
-  });
 
   it(`should type backslash on Backslash`, async ({ page }) => {
-    await page.keyboard.press('Backslash');
+    await page.keyboardFor('en-US').press('Backslash');
     expect(await page.evaluate('getResult()')).toBe(
         ['Keydown: \\ Backslash 220 []',
           'Keypress: \\ Backslash 92 92 []',
@@ -99,7 +91,7 @@ it.describe(`us keyboard layout`, () => {
 });
 
 it(`should throw exception on invalid layout format`, async ({ page }) => {
-  await expect(async () => await page.keyboard.changeLayout('invalid')).rejects.toThrowError();
+  await expect(async () => await page.keyboardFor('invalid').press('KeyA')).rejects.toThrowError();
 });
 
 const testData = {
@@ -113,10 +105,7 @@ const testData = {
 
 for (const [locale, { key, keyCode }] of Object.entries(testData)) {
   it(`should fire events on KeyA for ${locale} locale`, async ({ page, server }) => {
-    await page.keyboard.changeLayout(locale);
-    await page.goto(server.PREFIX + '/input/keyboard.html');
-
-    await page.keyboard.press('KeyA');
+    await page.keyboardFor(locale).press('KeyA');
     const charCode = key.charCodeAt(0);
     expect(await page.evaluate('getResult()')).toBe(
         [`Keydown: ${key} KeyA ${keyCode} []`,
