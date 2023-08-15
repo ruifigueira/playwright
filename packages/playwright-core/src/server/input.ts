@@ -51,7 +51,7 @@ export class Keyboard {
   private _raw: RawKeyboard;
   private _page: Page;
   private _keyboardLayout: KeyboardLayoutClosure;
-  private _deadKeyMappings?: Map<string, string>;
+  private _deadKey?: KeyDescription;
 
   constructor(raw: RawKeyboard, page: Page) {
     this._raw = raw;
@@ -65,7 +65,7 @@ export class Keyboard {
 
   async down(key: string) {
     const description = this._keyDescriptionForString(key);
-    if (description.key !== 'Shift') this._deadKeyMappings = undefined;
+    if (description.key !== 'Shift') this._deadKey = undefined;
     const autoRepeat = this._pressedKeys.has(description.code);
     this._pressedKeys.add(description.code);
     if (kModifiers.includes(description.key as types.KeyboardModifier))
@@ -86,12 +86,18 @@ export class Keyboard {
     if (this._pressedModifiers.size > 1 || (!this._pressedModifiers.has('Shift') && this._pressedModifiers.size === 1))
       return { ...description, text: '' };
 
-    if (!this._deadKeyMappings || description.key === 'Shift') return description;
+    if (!this._deadKey?.deadKeyMappings || description.key === 'Shift') return description;
 
     // handle deadkeys / accented keys
-    const deadKeyText = this._deadKeyMappings.get(description.text);
-    assert(deadKeyText, `Unknown accented key: "${description.text}"`);
-    return { ...description, text: deadKeyText, key: deadKeyText };
+    const deadKeyText = this._deadKey.deadKeyMappings.get(description.text);
+
+    if (deadKeyText !== undefined)
+      return { ...description, text: deadKeyText, key: deadKeyText };
+
+    // key has no accented form
+    const accentText = this._deadKey.deadKeyMappings.get(' ')!;
+
+    return { ...description, text: accentText + description.text };
   }
 
   async up(key: string) {
@@ -101,7 +107,7 @@ export class Keyboard {
     this._pressedKeys.delete(description.code);
     const descKey = description.deadKeyMappings ? 'Dead' : description.key;
     await this._raw.keyup(this._pressedModifiers, description.code, description.keyCode, description.keyCodeWithoutLocation, descKey, description.location);
-    if (description.key !== 'Shift') this._deadKeyMappings = description.deadKeyMappings;
+    if (description.key !== 'Shift') this._deadKey = description;
   }
 
   async insertText(text: string) {

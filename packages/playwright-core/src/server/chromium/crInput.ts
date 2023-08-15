@@ -51,13 +51,15 @@ export class RawKeyboardImpl implements input.RawKeyboard {
   }
 
   async keydown(modifiers: Set<types.KeyboardModifier>, code: string, keyCode: number, keyCodeWithoutLocation: number, key: string, location: number, autoRepeat: boolean, text: string | undefined): Promise<void> {
+    const promises = [];
     if (code === 'Escape' && await this._dragManger.cancelDrag())
       return;
     const commands = this._commandsForCode(code, modifiers);
     if (key === 'Dead')
       text = '';
-    await this._client.send('Input.dispatchKeyEvent', {
-      type: text ? 'keyDown' : 'rawKeyDown',
+    const type = text?.length === 1 ? 'keyDown' : 'rawKeyDown';
+    promises.push(this._client.send('Input.dispatchKeyEvent', {
+      type,
       modifiers: toModifiersMask(modifiers),
       windowsVirtualKeyCode: keyCodeWithoutLocation,
       code,
@@ -68,7 +70,21 @@ export class RawKeyboardImpl implements input.RawKeyboard {
       autoRepeat,
       location,
       isKeypad: location === input.keypadLocation
-    });
+    }));
+    if (text && text.length > 1) {
+      for (const c of text) {
+        promises.push(this._client.send('Input.dispatchKeyEvent', {
+          type: 'char',
+          modifiers: toModifiersMask(modifiers),
+          key: c,
+          windowsVirtualKeyCode: keyCodeWithoutLocation,
+          code,
+          location,
+          text: c,
+        }));
+      }
+    }
+    await Promise.all(promises);
   }
 
   async keyup(modifiers: Set<types.KeyboardModifier>, code: string, keyCode: number, keyCodeWithoutLocation: number, key: string, location: number): Promise<void> {

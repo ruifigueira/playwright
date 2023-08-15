@@ -56,6 +56,22 @@ it(`should handle shifted dead key`, async ({ page }) => {
         'Keyup: Shift ShiftLeft 16 []',].join('\n'));
 });
 
+it(`should handle dead key followed by unmapped key`, async ({ page, browserName }) => {
+  it.fixme(browserName === 'webkit', 'pending webkit support for char and rawKeyDown types');
+
+  await page.keyboard.changeLayout('pt');
+  await page.keyboard.press('BracketRight');
+  await page.keyboard.press('KeyT');
+  const keyDown = browserName === 'firefox' ? '´t' : 't';
+  expect(await page.evaluate('getResult()')).toBe(
+      [`Keydown: Dead BracketRight 186 []`,
+        `Keyup: Dead BracketRight 186 []`,
+        `Keydown: ${keyDown} KeyT 84 []`,
+        `Keypress: ´ KeyT 180 180 []`,
+        `Keypress: t KeyT 116 116 []`,
+        `Keyup: t KeyT 84 []`,].join('\n'));
+});
+
 it(`should throw exception on invalid layout format`, async ({ page }) => {
   await expect(async () => await page.keyboard.changeLayout('invalid')).rejects.toThrowError(`Keyboard layout name "invalid" not found`);
 });

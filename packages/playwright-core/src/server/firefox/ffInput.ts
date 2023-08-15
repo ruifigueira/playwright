@@ -71,6 +71,11 @@ export class RawKeyboardImpl implements input.RawKeyboard {
       text = '';
     if (key === 'Dead')
       text = '';
+    // we can send multiple characters as key and it will create all necessary keyPress events, see:
+    // https://github.com/mozilla/gecko-dev/blob/f1f50693655c093d974f026bd37860d939cd5529/dom/base/test/chrome/window_nsITextInputProcessor.xhtml#L2615-L2638
+    if (text && text.length > 1)
+      key = text;
+
     await this._client.send('Page.dispatchKeyEvent', {
       type: 'keydown',
       keyCode: keyCodeWithoutLocation,
