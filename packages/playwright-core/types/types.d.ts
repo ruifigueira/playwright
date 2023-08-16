@@ -12809,6 +12809,7 @@ export interface BrowserType<Unused = {}> {
      * | Values | Name |
      * | :- | :- |
      * | `us`, `en-US` | [US English](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+     * | `ara`, `ar-SA` | [Arabic](https://learn.microsoft.com/en-us/globalization/keyboards/kbda1) <!-- 00000401 --> |
      * | `gb`, `en-GB` | [British](https://learn.microsoft.com/en-us/globalization/keyboards/kbduk) <!-- 00000809 --> |
      * | `dk`, `da-DK` | [Danish](https://learn.microsoft.com/en-us/globalization/keyboards/kbdda) <!-- 00000406 --> |
      * | `fr`, `fr-FR` | [French](https://learn.microsoft.com/en-us/globalization/keyboards/kbdfr) <!-- 0000040C --> |
@@ -14242,6 +14243,7 @@ export interface AndroidDevice {
      * | Values | Name |
      * | :- | :- |
      * | `us`, `en-US` | [US English](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+     * | `ara`, `ar-SA` | [Arabic](https://learn.microsoft.com/en-us/globalization/keyboards/kbda1) <!-- 00000401 --> |
      * | `gb`, `en-GB` | [British](https://learn.microsoft.com/en-us/globalization/keyboards/kbduk) <!-- 00000809 --> |
      * | `dk`, `da-DK` | [Danish](https://learn.microsoft.com/en-us/globalization/keyboards/kbdda) <!-- 00000406 --> |
      * | `fr`, `fr-FR` | [French](https://learn.microsoft.com/en-us/globalization/keyboards/kbdfr) <!-- 0000040C --> |
@@ -16139,6 +16141,7 @@ export interface Browser extends EventEmitter {
      * | Values | Name |
      * | :- | :- |
      * | `us`, `en-US` | [US English](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+     * | `ara`, `ar-SA` | [Arabic](https://learn.microsoft.com/en-us/globalization/keyboards/kbda1) <!-- 00000401 --> |
      * | `gb`, `en-GB` | [British](https://learn.microsoft.com/en-us/globalization/keyboards/kbduk) <!-- 00000809 --> |
      * | `dk`, `da-DK` | [Danish](https://learn.microsoft.com/en-us/globalization/keyboards/kbdda) <!-- 00000406 --> |
      * | `fr`, `fr-FR` | [French](https://learn.microsoft.com/en-us/globalization/keyboards/kbdfr) <!-- 0000040C --> |
@@ -17038,6 +17041,7 @@ export interface Electron {
      * | Values | Name |
      * | :- | :- |
      * | `us`, `en-US` | [US English](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+     * | `ara`, `ar-SA` | [Arabic](https://learn.microsoft.com/en-us/globalization/keyboards/kbda1) <!-- 00000401 --> |
      * | `gb`, `en-GB` | [British](https://learn.microsoft.com/en-us/globalization/keyboards/kbduk) <!-- 00000809 --> |
      * | `dk`, `da-DK` | [Danish](https://learn.microsoft.com/en-us/globalization/keyboards/kbdda) <!-- 00000406 --> |
      * | `fr`, `fr-FR` | [French](https://learn.microsoft.com/en-us/globalization/keyboards/kbdfr) <!-- 0000040C --> |
@@ -17705,6 +17709,7 @@ export interface Keyboard {
    * | Values | Name |
    * | :- | :- |
    * | `us`, `en-US` | [US English](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+   * | `ara`, `ar-SA` | [Arabic](https://learn.microsoft.com/en-us/globalization/keyboards/kbda1) <!-- 00000401 --> |
    * | `gb`, `en-GB` | [British](https://learn.microsoft.com/en-us/globalization/keyboards/kbduk) <!-- 00000809 --> |
    * | `dk`, `da-DK` | [Danish](https://learn.microsoft.com/en-us/globalization/keyboards/kbdda) <!-- 00000406 --> |
    * | `fr`, `fr-FR` | [French](https://learn.microsoft.com/en-us/globalization/keyboards/kbdfr) <!-- 0000040C --> |
@@ -19350,6 +19355,7 @@ export interface BrowserContextOptions {
    * | Values | Name |
    * | :- | :- |
    * | `us`, `en-US` | [US English](https://learn.microsoft.com/en-us/globalization/keyboards/kbdus_7) <!-- 00000409 --> |
+   * | `ara`, `ar-SA` | [Arabic](https://learn.microsoft.com/en-us/globalization/keyboards/kbda1) <!-- 00000401 --> |
    * | `gb`, `en-GB` | [British](https://learn.microsoft.com/en-us/globalization/keyboards/kbduk) <!-- 00000809 --> |
    * | `dk`, `da-DK` | [Danish](https://learn.microsoft.com/en-us/globalization/keyboards/kbdda) <!-- 00000406 --> |
    * | `fr`, `fr-FR` | [French](https://learn.microsoft.com/en-us/globalization/keyboards/kbdfr) <!-- 0000040C --> |

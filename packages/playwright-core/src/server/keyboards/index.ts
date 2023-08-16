@@ -26,6 +26,8 @@ export const defaultKeyboardLayout: KeyboardLayout = usKeyboardLayout;
 export const keyboardLayoutNamesMapping = new Map<string, string>([
   ['us', 'us'], // US English
   ['en_us', 'us'], // US English
+  ['ara', 'ara'], // Arabic
+  ['ar_sa', 'ara'], // Arabic
   ['gb', 'gb'], // British
   ['en_gb', 'gb'], // British
   ['dk', 'dk'], // Danish

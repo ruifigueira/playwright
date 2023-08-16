@@ -306,6 +306,10 @@ function normalizeLayoutName(layoutName: string) {
   return layoutName.replace(/-/g, '_').toLowerCase();
 }
 
+function isKeyCodeOrModifier(layout: KeyboardLayout, key?: string) {
+  return key && (key in layout || kModifiers.includes(key as types.KeyboardModifier));
+}
+
 function _buildLayoutClosure(layout: KeyboardLayout): KeyboardLayoutClosure {
   const result = new Map<string, KeyDescription | string[]>();
   for (const code in layout) {
@@ -319,13 +323,12 @@ function _buildLayoutClosure(layout: KeyboardLayout): KeyboardLayoutClosure {
       location: definition.location || 0,
       deadKeyMappings: definition.key && definition.deadKeyMappings ? new Map(Object.entries(definition.deadKeyMappings)) : undefined,
     };
-    if (definition.key?.length === 1)
+    if (!isKeyCodeOrModifier(layout, definition.key))
       description.text = description.key;
 
     // Generate shifted definition.
     let shiftedDescription: KeyDescription | undefined;
     if (definition.shiftKey) {
-      assert(definition.shiftKey.length === 1);
       shiftedDescription = { ...description };
       shiftedDescription.key = definition.shiftKey;
       shiftedDescription.text = definition.shiftKey;
@@ -349,7 +352,7 @@ function _buildLayoutClosure(layout: KeyboardLayout): KeyboardLayoutClosure {
       continue;
 
     // Map from key, no shifted
-    if (description.key.length === 1)
+    if (!isKeyCodeOrModifier(layout, definition.key))
       result.set(description.key, description);
 
     // Map from accented keys

@@ -72,6 +72,36 @@ it(`should handle dead key followed by unmapped key`, async ({ page, browserName
         `Keyup: t KeyT 84 []`,].join('\n'));
 });
 
+it(`should handle ligature`, async ({ page, browserName }) => {
+  it.fixme(browserName === 'webkit', 'pending webkit support for char and rawKeyDown types');
+
+  await page.keyboard.changeLayout('ara');
+  await page.keyboard.press('KeyB');
+  await expect(page.locator('textarea')).toHaveValue('لا');
+  const keyDown = browserName === 'firefox' ? 'لا' : '';
+  expect(await page.evaluate('getResult()')).toBe(
+      [`Keydown: ${keyDown} KeyB 66 []`,
+        `Keypress: ل KeyB 1604 1604 []`,
+        `Keypress: ا KeyB 1575 1575 []`,
+        `Keyup: ${keyDown} KeyB 66 []`,].join('\n'));
+});
+
+it(`should handle shifted ligature`, async ({ page, browserName }) => {
+  it.fixme(browserName === 'webkit', 'pending webkit support for char and rawKeyDown types');
+
+  await page.keyboard.changeLayout('ara');
+  await page.keyboard.press('Shift+KeyB');
+  await expect(page.locator('textarea')).toHaveValue('لآ');
+  const keyDown = browserName === 'firefox' ? 'لآ' : '';
+  expect(await page.evaluate('getResult()')).toBe(
+      [`Keydown: Shift ShiftLeft 16 [Shift]`,
+        `Keydown: ${keyDown} KeyB 66 [Shift]`,
+        `Keypress: ل KeyB 1604 1604 [Shift]`,
+        `Keypress: آ KeyB 1570 1570 [Shift]`,
+        `Keyup: ${keyDown} KeyB 66 [Shift]`,
+        `Keyup: Shift ShiftLeft 16 []`,].join('\n'));
+});
+
 it(`should throw exception on invalid layout format`, async ({ page }) => {
   await expect(async () => await page.keyboard.changeLayout('invalid')).rejects.toThrowError(`Keyboard layout name "invalid" not found`);
 });
@@ -83,6 +113,7 @@ type AccentedKeyTest = [...SimpleKeyTest, string, number];
 
 const testData: Record<string, (SimpleKeyTest | AccentedKeyTest)[]> = {
   'us': [['`', 'Backquote', 192], ['~', 'Shift+Backquote', 192]],
+  'ara': [['ذ', 'Backquote', 192], ['ّ', 'Shift+Backquote', 192]],
   'gb': [['`', 'Backquote', 223], ['¬', 'Shift+Backquote', 223]],
   'dk': [['ø', 'Quote', 222], ['ä', 'BracketRight', 186, 'KeyA', 65], ['â', 'Shift+BracketRight', 186, 'KeyA', 65], ['Â', 'Shift+BracketRight', 186, 'Shift+KeyA', 65]],
   'fr': [['q', 'KeyA', 81], ['â', 'BracketLeft', 221, 'KeyQ', 65], ['ä', 'Shift+BracketLeft', 221, 'KeyQ', 65], ['Ä', 'Shift+BracketLeft', 221, 'Shift+KeyQ', 65]],
