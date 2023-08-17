@@ -204,16 +204,16 @@ async function generate(klid) {
   /**
    * scancode to keys
    * @typedef {{ accent: string, results: Object.<string, string> }} DeadKey
-   * @type {Object.<string, { key: string, shiftKey: string, deadKeyMappings?: Object.<string, string>, shiftDeadKeyMappings?: Object.<string, string> }>}
+   * @type {Object.<string, { key: string, shiftKey: string, ctrlAltKey: string, deadKeyMappings?: Object.<string, string>, shiftDeadKeyMappings?: Object.<string, string>, ctrlAltDeadKeyMappings?: Object.<string, string> }>}
    */
   const sc2keys = Object.fromEntries(sc2vkJson.KeyboardLayout.PhysicalKeys[0].PK
       .map(({ Result, $: { SC } }) => {
         if (!Result) return;
 
-        let key, shiftKey, deadKeyMappings, shiftDeadKeyMappings;
+        let key, shiftKey, ctrlAltKey, deadKeyMappings, shiftDeadKeyMappings, ctrlAltDeadKeyMappings;
         for (const { $, DeadKeyTable } of Result) {
           const { Text, With } = $ ?? {};
-          if (With && With !== 'VK_SHIFT') continue;
+          if (With && With !== 'VK_SHIFT' && With !== 'VK_CONTROL VK_MENU') continue;
 
           let text = Text;
           let results;
@@ -223,15 +223,20 @@ async function generate(klid) {
             results = Object.fromEntries(Result.map(({ $: { Text, With } }) => ([With, Text])));
           };
           const isShift = With === 'VK_SHIFT';
-          if (!isShift) {
-            key = text;
-            deadKeyMappings = results;
-          } else {
+          const isCtrlAlt = With === 'VK_CONTROL VK_MENU';
+
+          if (isShift) {
             shiftKey = text;
             shiftDeadKeyMappings = results;
+          } else if (isCtrlAlt) {
+            ctrlAltKey = text;
+            ctrlAltDeadKeyMappings = results;
+          } else {
+            key = text;
+            deadKeyMappings = results;
           }
         }
-        return [SC.toUpperCase(), { key, shiftKey, deadKeyMappings, shiftDeadKeyMappings }];
+        return [SC.toUpperCase(), { key, shiftKey, ctrlAltKey, deadKeyMappings, shiftDeadKeyMappings, ctrlAltDeadKeyMappings }];
       }).filter(Boolean));
 
   const kdbtablesJson = parseXML(kdbtables);
@@ -252,14 +257,14 @@ async function generate(klid) {
   for (const [keyname, def] of Object.entries(keyboardLayoutGenerator)) {
     if (typeof def === 'number') {
       const sc = def.toString(16).toUpperCase().padStart(2, '0');
-      const { key, shiftKey, deadKeyMappings, shiftDeadKeyMappings } = sc2keys[sc] ?? {};
+      const { key, shiftKey, ctrlAltKey, deadKeyMappings, shiftDeadKeyMappings, ctrlAltDeadKeyMappings } = sc2keys[sc] ?? {};
 
       if (key === shiftKey === undefined) continue;
 
       // def is the scancode as number
       const keyCode = sc2vkCode[def];
 
-      layout[keyname] = { key, keyCode, shiftKey: keyname === 'Space' && key === shiftKey ? undefined : shiftKey, deadKeyMappings, shiftDeadKeyMappings };
+      layout[keyname] = { key, keyCode, shiftKey: keyname === 'Space' && key === shiftKey ? undefined : shiftKey, ctrlAltKey, deadKeyMappings, shiftDeadKeyMappings, ctrlAltDeadKeyMappings };
     } else {
       layout[keyname] = def;
     }
@@ -289,10 +294,13 @@ function stringifyKeyDefinition(def) {
   if (def.keyCodeWithoutLocation !== undefined) propStrs.push(`keyCodeWithoutLocation: ${def.keyCodeWithoutLocation}`);
   if (def.shiftKey !== undefined) propStrs.push(`shiftKey: '${fixQuotes(def.shiftKey)}'`);
   if (def.shiftKeyCode !== undefined) propStrs.push(`shiftKeyCode: ${def.shiftKeyCode}`);
+  if (def.ctrlAltKey !== undefined) propStrs.push(`ctrlAltKey: '${fixQuotes(def.ctrlAltKey)}'`);
+  if (def.ctrlAltKeyCode !== undefined) propStrs.push(`ctrlAltKeyCode: ${def.ctrlAltKeyCode}`);
   if (def.text !== undefined) propStrs.push(`text: '${fixQuotes(def.text)}'`);
   if (def.location !== undefined) propStrs.push(`location: ${def.location}`);
   if (def.deadKeyMappings !== undefined) propStrs.push(`deadKeyMappings: ${stringifyDeadKeyMappings(def.deadKeyMappings)}`);
   if (def.shiftDeadKeyMappings !== undefined) propStrs.push(`shiftDeadKeyMappings: ${stringifyDeadKeyMappings(def.shiftDeadKeyMappings)}`);
+  if (def.ctrlAltDeadKeyMappings !== undefined) propStrs.push(`ctrlAltDeadKeyMappings: ${stringifyDeadKeyMappings(def.ctrlAltDeadKeyMappings)}`);
 
   return `{ ${propStrs.join(', ')} }`;
 }

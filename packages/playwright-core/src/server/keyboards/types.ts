@@ -20,10 +20,13 @@ export type KeyDefinition = {
   keyCodeWithoutLocation?: number;
   shiftKey?: string;
   shiftKeyCode?: number;
+  ctrlAltKey?: string;
+  ctrlAltKeyCode?: number;
   text?: string;
   location?: number;
   deadKeyMappings?: Record<string, string>;
   shiftDeadKeyMappings?: Record<string, string>;
+  ctrlAltDeadKeyMappings?: Record<string, string>;
 };
 
 export type KeyboardLayout =  Record<string, KeyDefinition>;

@@ -54,7 +54,7 @@ const keyboardLayout: KeyboardLayout = {
   KeyR: { key: 'к', keyCode: 82, shiftKey: 'К' },
   KeyT: { key: 'е', keyCode: 84, shiftKey: 'Е' },
   KeyY: { key: 'н', keyCode: 89, shiftKey: 'Н' },
-  KeyU: { key: 'г', keyCode: 85, shiftKey: 'Г' },
+  KeyU: { key: 'г', keyCode: 85, shiftKey: 'Г', ctrlAltKey: 'ґ' },
   KeyI: { key: 'ш', keyCode: 73, shiftKey: 'Ш' },
   KeyO: { key: 'щ', keyCode: 79, shiftKey: 'Щ' },
   KeyP: { key: 'з', keyCode: 80, shiftKey: 'З' },

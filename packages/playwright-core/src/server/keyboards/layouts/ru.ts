@@ -41,7 +41,7 @@ const keyboardLayout: KeyboardLayout = {
   Digit5: { key: '5', keyCode: 53, shiftKey: '%' },
   Digit6: { key: '6', keyCode: 54, shiftKey: ':' },
   Digit7: { key: '7', keyCode: 55, shiftKey: '?' },
-  Digit8: { key: '8', keyCode: 56, shiftKey: '*' },
+  Digit8: { key: '8', keyCode: 56, shiftKey: '*', ctrlAltKey: '₽' },
   Digit9: { key: '9', keyCode: 57, shiftKey: '(' },
   Digit0: { key: '0', keyCode: 48, shiftKey: ')' },
   Minus: { key: '-', keyCode: 189, shiftKey: '_' },

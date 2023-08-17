@@ -30,6 +30,7 @@ type KeyDescription = {
   code: string,
   location: number,
   shifted?: KeyDescription;
+  ctrlAlted?: KeyDescription;
   deadKeyMappings?: Map<string, string>;
 };
 
@@ -65,7 +66,7 @@ export class Keyboard {
 
   async down(key: string) {
     const description = this._keyDescriptionForString(key);
-    if (description.key !== 'Shift') this._deadKey = undefined;
+    if (description.text) this._deadKey = undefined;
     const autoRepeat = this._pressedKeys.has(description.code);
     this._pressedKeys.add(description.code);
     if (kModifiers.includes(description.key as types.KeyboardModifier))
@@ -79,14 +80,25 @@ export class Keyboard {
     assert(description, `Unknown key: "${keyString}"`);
     assert(!Array.isArray(description), `Accented key not supported: "${keyString}"`);
 
+    const ctrlAlt = this._pressedModifiers.has('Alt') && this._pressedModifiers.has('Control');
     const shift = this._pressedModifiers.has('Shift');
-    description = shift && description.shifted ? description.shifted : description;
 
-    // if any modifiers besides shift are pressed, no text should be sent
-    if (this._pressedModifiers.size > 1 || (!this._pressedModifiers.has('Shift') && this._pressedModifiers.size === 1))
-      return { ...description, text: '' };
+    // if it's modifiers + key but key's modifiers are not pressed, no text should be sent
+    if (this._pressedModifiers.size > 0 && ((description.shifted === description && !shift) || (description.ctrlAlted === description && !ctrlAlt))) return { ...description, text: '' };
 
-    if (!this._deadKey?.deadKeyMappings || description.key === 'Shift') return description;
+    if (shift) {
+      // if any modifiers besides shift are pressed, no text should be sent
+      if (this._pressedModifiers.size > 1) return { ...description, text: '' };
+      description = description.shifted ?? description;
+    }
+
+    if (ctrlAlt) {
+      // if there's no key for crtl+alt or any modifiers besides those are pressed, no text should be sent
+      if (!description.ctrlAlted || this._pressedModifiers.size > 2) return { ...description, text: '' };
+      description = description.ctrlAlted;
+    }
+
+    if (!this._deadKey?.deadKeyMappings || kModifiers.includes(description.key as types.KeyboardModifier)) return description;
 
     // handle deadkeys / accented keys
     const deadKeyText = this._deadKey.deadKeyMappings.get(description.text);
@@ -106,8 +118,8 @@ export class Keyboard {
       this._pressedModifiers.delete(description.key as types.KeyboardModifier);
     this._pressedKeys.delete(description.code);
     const descKey = description.deadKeyMappings ? 'Dead' : description.key;
+    if (description.text) this._deadKey = description;
     await this._raw.keyup(this._pressedModifiers, description.code, description.keyCode, description.keyCodeWithoutLocation, descKey, description.location);
-    if (description.key !== 'Shift') this._deadKey = description;
   }
 
   async insertText(text: string) {
@@ -332,6 +344,7 @@ function _buildLayoutClosure(layout: KeyboardLayout): KeyboardLayoutClosure {
       shiftedDescription = { ...description };
       shiftedDescription.key = definition.shiftKey;
       shiftedDescription.text = definition.shiftKey;
+      shiftedDescription.shifted = shiftedDescription;
       if (definition.shiftKeyCode)
         shiftedDescription.keyCode = definition.shiftKeyCode;
       if (definition.shiftDeadKeyMappings)
@@ -340,6 +353,22 @@ function _buildLayoutClosure(layout: KeyboardLayout): KeyboardLayoutClosure {
 
     // Map from code: Digit3 -> { ... descrption, shifted }
     result.set(code, { ...description, shifted: shiftedDescription });
+
+    // Generate alt definition.
+    let ctrlAltDescription: KeyDescription | undefined;
+    if (definition.ctrlAltKey) {
+      ctrlAltDescription = { ...description };
+      ctrlAltDescription.key = definition.ctrlAltKey;
+      ctrlAltDescription.text = definition.ctrlAltKey;
+      ctrlAltDescription.ctrlAlted = ctrlAltDescription;
+      if (definition.ctrlAltKeyCode)
+        ctrlAltDescription.keyCode = definition.ctrlAltKeyCode;
+      if (definition.ctrlAltDeadKeyMappings)
+        ctrlAltDescription.deadKeyMappings = new Map(Object.entries(definition.ctrlAltDeadKeyMappings));
+    }
+
+    // Map from code: Digit3 -> { ... descrption, shifted }
+    result.set(code, { ...description, shifted: shiftedDescription, ctrlAlted: ctrlAltDescription });
 
     // Map from aliases: Shift -> non-shiftable definition
     if (aliases.has(code)) {
@@ -363,14 +392,26 @@ function _buildLayoutClosure(layout: KeyboardLayout): KeyboardLayoutClosure {
     }
 
     if (shiftedDescription) {
-      // Map from shiftKey, no shifted
-      result.set(shiftedDescription.key, { ...shiftedDescription, shifted: undefined });
+      // Map from shiftKey
+      result.set(shiftedDescription.key, shiftedDescription);
 
       // Map from shifted accented keys
       if (definition.shiftDeadKeyMappings) {
         for (const [k, v] of Object.entries(definition.shiftDeadKeyMappings))
           // if there's a dedicated accented key, we don't want to replace them
           if (!result.has(v)) result.set(v, [`Shift+${code}`, k]);
+      }
+    }
+
+    if (ctrlAltDescription) {
+      // Map from altKey
+      result.set(ctrlAltDescription.key, ctrlAltDescription);
+
+      // Map from shifted accented keys
+      if (definition.ctrlAltDeadKeyMappings) {
+        for (const [k, v] of Object.entries(definition.ctrlAltDeadKeyMappings))
+          // if there's a dedicated accented key, we don't want to replace them
+          if (!result.has(v)) result.set(v, [`Control+Alt+${code}`, k]);
       }
     }
   }
