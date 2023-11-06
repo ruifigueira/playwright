@@ -27,6 +27,7 @@ export type ActionName =
   'select' |
   'uncheck' |
   'setInputFiles' |
+  'dragAndDrop' |
   'assertText' |
   'assertValue' |
   'assertChecked' |
@@ -95,6 +96,12 @@ export type SetInputFilesAction = ActionBase & {
   files: string[],
 };
 
+export type DragAndDropAction = ActionBase & {
+  name: 'dragAndDrop',
+  source: string,
+  target: string,
+};
+
 export type AssertTextAction = ActionBase & {
   name: 'assertText',
   selector: string,
@@ -119,7 +126,7 @@ export type AssertVisibleAction = ActionBase & {
   selector: string,
 };
 
-export type Action = ClickAction | CheckAction | ClosesPageAction | OpenPageAction | UncheckAction | FillAction | NavigateAction | PressAction | SelectAction | SetInputFilesAction | AssertTextAction | AssertValueAction | AssertCheckedAction | AssertVisibleAction;
+export type Action = ClickAction | CheckAction | ClosesPageAction | OpenPageAction | UncheckAction | FillAction | NavigateAction | PressAction | SelectAction | SetInputFilesAction | DragAndDropAction | AssertTextAction | AssertValueAction | AssertCheckedAction | AssertVisibleAction;
 export type AssertAction = AssertCheckedAction | AssertValueAction | AssertTextAction | AssertVisibleAction;
 
 // Signals.
