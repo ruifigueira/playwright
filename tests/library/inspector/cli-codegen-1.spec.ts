@@ -770,4 +770,8 @@ await page.GetByText("Click me").ClickAsync(new LocatorClickOptions
 
     expect(sources.get('JavaScript')!.text).toContain(`
   await page.getByRole('slider').fill('10');`);
+
+    expect(sources.get('JavaScript')!.text).not.toContain(`
+  await page.getByRole('slider').click();`);
+  });
 });

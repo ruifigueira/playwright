@@ -185,7 +185,7 @@ class RecordActionTool implements RecorderTool {
       return;
     if (this._performingAction)
       return;
-    if (!this._hoveredModel)
+    if (this._isHoveredWrongTarget(event))
       return;
 
     const checkbox = asCheckbox(this._recorder.deepEventTarget(event));
@@ -257,7 +257,7 @@ class RecordActionTool implements RecorderTool {
       }
 
       // Non-navigating actions are simply recorded by Playwright.
-      if (this._isWrongTarget(event))
+      if (this._isActiveWrongTarget(event))
         return;
       this._recorder.delegate.recordAction?.({
         name: 'fill',
@@ -285,7 +285,7 @@ class RecordActionTool implements RecorderTool {
       return;
     if (this._performingAction)
       return;
-    if (this._isWrongTarget(event))
+    if (this._isHoveredWrongTarget(event))
       return;
     // Similarly to click, trigger checkbox on key event, not input.
     if (event.key === ' ') {
@@ -338,8 +338,12 @@ class RecordActionTool implements RecorderTool {
     return false;
   }
 
-  private _isWrongTarget(event: Event): boolean {
-    return !(this._activeModel && this._activeModel.elements[0] === this._recorder.deepEventTarget(event));
+  private _isActiveWrongTarget(event: Event): boolean {
+    return !this._activeModel || this._activeModel.elements[0] !== this._recorder.deepEventTarget(event);
+  }
+
+  private _isHoveredWrongTarget(event: Event): boolean {
+    return !this._hoveredModel || this._hoveredModel.elements[0] !== this._recorder.deepEventTarget(event);
   }
 
   private async _performAction(action: actions.Action) {
