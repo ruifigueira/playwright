@@ -27,7 +27,6 @@ import { asLocator } from '../../utils/isomorphic/locatorGenerators';
 import { normalizeWhiteSpace } from '@isomorphic/stringUtils';
 
 interface RecorderDelegate {
-  performAction?(action: actions.Action): Promise<void>;
   recordAction?(action: actions.Action): Promise<void>;
   setSelector?(selector: string): Promise<void>;
   setMode?(mode: Mode): Promise<void>;
@@ -166,7 +165,6 @@ class RecordActionTool implements RecorderTool {
   private _hoveredModel: HighlightModel | null = null;
   private _hoveredElement: HTMLElement | null = null;
   private _activeModel: HighlightModel | null = null;
-  private _expectProgrammaticKeyUp = false;
 
   constructor(recorder: Recorder) {
     this._recorder = recorder;
@@ -180,15 +178,14 @@ class RecordActionTool implements RecorderTool {
     this._hoveredModel = null;
     this._hoveredElement = null;
     this._activeModel = null;
-    this._expectProgrammaticKeyUp = false;
   }
 
   onClick(event: MouseEvent) {
     if (this._shouldIgnoreMouseEvent(event))
       return;
-    if (this._actionInProgress(event))
+    if (this._performingAction)
       return;
-    if (this._consumedDueToNoModel(event, this._hoveredModel))
+    if (!this._hoveredModel)
       return;
 
     const checkbox = asCheckbox(this._recorder.deepEventTarget(event));
@@ -213,33 +210,10 @@ class RecordActionTool implements RecorderTool {
     });
   }
 
-  onPointerDown(event: PointerEvent) {
-    if (this._shouldIgnoreMouseEvent(event))
-      return;
-    if (!this._performingAction)
-      consumeEvent(event);
-  }
-
-  onPointerUp(event: PointerEvent) {
-    if (this._shouldIgnoreMouseEvent(event))
-      return;
-    if (!this._performingAction)
-      consumeEvent(event);
-  }
-
   onMouseDown(event: MouseEvent) {
     if (this._shouldIgnoreMouseEvent(event))
       return;
-    if (!this._performingAction)
-      consumeEvent(event);
     this._activeModel = this._hoveredModel;
-  }
-
-  onMouseUp(event: MouseEvent) {
-    if (this._shouldIgnoreMouseEvent(event))
-      return;
-    if (!this._performingAction)
-      consumeEvent(event);
   }
 
   onMouseMove(event: MouseEvent) {
@@ -283,7 +257,7 @@ class RecordActionTool implements RecorderTool {
       }
 
       // Non-navigating actions are simply recorded by Playwright.
-      if (this._consumedDueWrongTarget(event))
+      if (this._isWrongTarget(event))
         return;
       this._recorder.delegate.recordAction?.({
         name: 'fill',
@@ -295,7 +269,7 @@ class RecordActionTool implements RecorderTool {
 
     if (target.nodeName === 'SELECT') {
       const selectElement = target as HTMLSelectElement;
-      if (this._actionInProgress(event))
+      if (this._performingAction)
         return;
       this._performAction({
         name: 'select',
@@ -309,11 +283,9 @@ class RecordActionTool implements RecorderTool {
   onKeyDown(event: KeyboardEvent) {
     if (!this._shouldGenerateKeyPressFor(event))
       return;
-    if (this._actionInProgress(event)) {
-      this._expectProgrammaticKeyUp = true;
+    if (this._performingAction)
       return;
-    }
-    if (this._consumedDueWrongTarget(event))
+    if (this._isWrongTarget(event))
       return;
     // Similarly to click, trigger checkbox on key event, not input.
     if (event.key === ' ') {
@@ -335,18 +307,6 @@ class RecordActionTool implements RecorderTool {
       key: event.key,
       modifiers: modifiersForEvent(event),
     });
-  }
-
-  onKeyUp(event: KeyboardEvent) {
-    if (!this._shouldGenerateKeyPressFor(event))
-      return;
-
-    // Only allow programmatic keyups, ignore user input.
-    if (!this._expectProgrammaticKeyUp) {
-      consumeEvent(event);
-      return;
-    }
-    this._expectProgrammaticKeyUp = false;
   }
 
   onScroll(event: Event) {
@@ -373,42 +333,26 @@ class RecordActionTool implements RecorderTool {
     const nodeName = target.nodeName;
     if (nodeName === 'SELECT' || nodeName === 'OPTION')
       return true;
-    if (nodeName === 'INPUT' && ['date'].includes((target as HTMLInputElement).type))
+    if (nodeName === 'INPUT' && ['date', 'range'].includes((target as HTMLInputElement).type))
       return true;
     return false;
   }
 
-  private _actionInProgress(event: Event): boolean {
-    // If Playwright is performing action for us, bail.
-    if (this._performingAction)
-      return true;
-    // Consume as the first thing.
-    consumeEvent(event);
-    return false;
-  }
-
-  private _consumedDueToNoModel(event: Event, model: HighlightModel | null): boolean {
-    if (model)
-      return false;
-    consumeEvent(event);
-    return true;
-  }
-
-  private _consumedDueWrongTarget(event: Event): boolean {
-    if (this._activeModel && this._activeModel.elements[0] === this._recorder.deepEventTarget(event))
-      return false;
-    consumeEvent(event);
-    return true;
+  private _isWrongTarget(event: Event): boolean {
+    return !(this._activeModel && this._activeModel.elements[0] === this._recorder.deepEventTarget(event));
   }
 
   private async _performAction(action: actions.Action) {
-    this._hoveredElement = null;
+    const hoveredElement = this._hoveredElement;
     this._hoveredModel = null;
     this._activeModel = null;
     this._recorder.updateHighlight(null, false);
     this._performingAction = true;
-    await this._recorder.delegate.performAction?.(action).catch(() => {});
+    await this._recorder.delegate.recordAction?.(action).catch(() => {});
     this._performingAction = false;
+
+    this._hoveredElement = hoveredElement;
+    this._updateModelForHoveredElement();
 
     // If that was a keyboard action, it similarly requires new selectors for active model.
     this._onFocus(false);
@@ -1175,7 +1119,6 @@ function querySelector(injectedScript: InjectedScript, selector: string, ownerDo
 }
 
 interface Embedder {
-  __pw_recorderPerformAction(action: actions.Action): Promise<void>;
   __pw_recorderRecordAction(action: actions.Action): Promise<void>;
   __pw_recorderState(): Promise<UIState>;
   __pw_recorderSetSelector(selector: string): Promise<void>;
@@ -1219,10 +1162,6 @@ export class PollingRecorder implements RecorderDelegate {
     }
     this._recorder.setUIState(state, this);
     this._pollRecorderModeTimer = setTimeout(() => this._pollRecorderMode(), pollPeriod);
-  }
-
-  async performAction(action: actions.Action) {
-    await this._embedder.__pw_recorderPerformAction(action);
   }
 
   async recordAction(action: actions.Action): Promise<void> {

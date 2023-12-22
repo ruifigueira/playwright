@@ -19,7 +19,6 @@ import type * as actions from './recorder/recorderActions';
 import type * as channels from '@protocol/channels';
 import type { ActionInContext } from './recorder/codeGenerator';
 import { CodeGenerator } from './recorder/codeGenerator';
-import { toClickOptions, toModifiers } from './recorder/utils';
 import { Page } from './page';
 import { Frame } from './frames';
 import { BrowserContext } from './browserContext';
@@ -36,7 +35,7 @@ import { RecorderApp } from './recorder/recorderApp';
 import type { CallMetadata, InstrumentationListener, SdkObject } from './instrumentation';
 import type { Point } from '../common/types';
 import type { CallLog, CallLogStatus, EventData, Mode, OverlayState, Source, UIState } from '@recorder/recorderTypes';
-import { createGuid, isUnderTest, monotonicTime } from '../utils';
+import { isUnderTest, monotonicTime } from '../utils';
 import { metadataToCallLog } from './recorder/recorderUtils';
 import { Debugger } from './debugger';
 import { EventEmitter } from 'events';
@@ -467,11 +466,6 @@ class ContextRecorder extends EventEmitter {
       this._onPage(page);
     this._context.on(BrowserContext.Events.Dialog, (dialog: Dialog) => this._onDialog(dialog.page()));
 
-    // Input actions that potentially lead to navigation are intercepted on the page and are
-    // performed by the Playwright.
-    await this._context.exposeBinding('__pw_recorderPerformAction', false,
-        (source: BindingSource, action: actions.Action) => this._performAction(source.frame, action));
-
     // Other non-essential actions are simply being recorded.
     await this._context.exposeBinding('__pw_recorderRecordAction', false,
         (source: BindingSource, action: actions.Action) => this._recordAction(source.frame, action));
@@ -583,75 +577,6 @@ class ContextRecorder extends EventEmitter {
 
   testIdAttributeName(): string {
     return this._params.testIdAttributeName || this._context.selectors().testIdAttributeName() || 'data-testid';
-  }
-
-  private async _performAction(frame: Frame, action: actions.Action) {
-    // Commit last action so that no further signals are added to it.
-    this._generator.commitLastAction();
-
-    const frameDescription = await this._describeFrame(frame);
-    const actionInContext: ActionInContext = {
-      frame: frameDescription,
-      action
-    };
-
-    const perform = async (action: string, params: any, cb: (callMetadata: CallMetadata) => Promise<any>) => {
-      const callMetadata: CallMetadata = {
-        id: `call@${createGuid()}`,
-        apiName: 'frame.' + action,
-        objectId: frame.guid,
-        pageId: frame._page.guid,
-        frameId: frame.guid,
-        startTime: monotonicTime(),
-        endTime: 0,
-        wallTime: Date.now(),
-        type: 'Frame',
-        method: action,
-        params,
-        log: [],
-      };
-      this._generator.willPerformAction(actionInContext);
-
-      try {
-        await frame.instrumentation.onBeforeCall(frame, callMetadata);
-        await cb(callMetadata);
-      } catch (e) {
-        callMetadata.endTime = monotonicTime();
-        await frame.instrumentation.onAfterCall(frame, callMetadata);
-        this._generator.performedActionFailed(actionInContext);
-        return;
-      }
-
-      callMetadata.endTime = monotonicTime();
-      await frame.instrumentation.onAfterCall(frame, callMetadata);
-
-      const timer = setTimeout(() => {
-        // Commit the action after 5 seconds so that no further signals are added to it.
-        actionInContext.committed = true;
-        this._timers.delete(timer);
-      }, 5000);
-      this._generator.didPerformAction(actionInContext);
-      this._timers.add(timer);
-    };
-
-    const kActionTimeout = 5000;
-    if (action.name === 'click') {
-      const { options } = toClickOptions(action);
-      await perform('click', { selector: action.selector }, callMetadata => frame.click(callMetadata, action.selector, { ...options, timeout: kActionTimeout, strict: true }));
-    }
-    if (action.name === 'press') {
-      const modifiers = toModifiers(action.modifiers);
-      const shortcut = [...modifiers, action.key].join('+');
-      await perform('press', { selector: action.selector, key: shortcut }, callMetadata => frame.press(callMetadata, action.selector, shortcut, { timeout: kActionTimeout, strict: true }));
-    }
-    if (action.name === 'check')
-      await perform('check', { selector: action.selector }, callMetadata => frame.check(callMetadata, action.selector, { timeout: kActionTimeout, strict: true }));
-    if (action.name === 'uncheck')
-      await perform('uncheck', { selector: action.selector }, callMetadata => frame.uncheck(callMetadata, action.selector, { timeout: kActionTimeout, strict: true }));
-    if (action.name === 'select') {
-      const values = action.options.map(value => ({ value }));
-      await perform('selectOption', { selector: action.selector, values }, callMetadata => frame.selectOption(callMetadata, action.selector, [], values, { timeout: kActionTimeout, strict: true }));
-    }
   }
 
   private async _recordAction(frame: Frame, action: actions.Action) {

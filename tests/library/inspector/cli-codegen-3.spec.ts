@@ -551,8 +551,9 @@ await page.GetByLabel("Coun\\"try").ClickAsync();`);
     ]);
     expect(message.text()).toBe('clicked');
     expect(await page.evaluate('log')).toEqual([
+      // from hoverOverElement
       'pointermove', 'mousemove',
-      'pointermove', 'mousemove',
+      // from trustedClick
       'pointerdown', 'mousedown',
       'pointerup', 'mouseup',
       'click',
