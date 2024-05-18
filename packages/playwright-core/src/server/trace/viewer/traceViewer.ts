@@ -33,6 +33,7 @@ export type TraceViewerServerOptions = {
   port?: number;
   isServer?: boolean;
   transport?: Transport;
+  embedded?: boolean;
 };
 
 export type TraceViewerRedirectOptions = {
@@ -47,6 +48,7 @@ export type TraceViewerRedirectOptions = {
   webApp?: string;
   isServer?: boolean;
   outputDir?: string;
+  embedded?: boolean;
 };
 
 export type TraceViewerAppOptions = {
@@ -134,6 +136,8 @@ export async function installRootRedirect(server: HttpServer, traceUrls: string[
     params.append('outputDir', options.outputDir);
   for (const reporter of options.reporter || [])
     params.append('reporter', reporter);
+  if (options.embedded)
+    params.append('embedded', '');
 
   const urlPath  = `./trace/${options.webApp || 'index.html'}?${params.toString()}`;
   server.routePath('/', (_, response) => {
@@ -144,10 +148,15 @@ export async function installRootRedirect(server: HttpServer, traceUrls: string[
   });
 }
 
-export async function runTraceViewerApp(traceUrls: string[], browserName: string, options: TraceViewerServerOptions & { headless?: boolean }, exitOnClose?: boolean) {
+export async function runTraceViewerServer(traceUrls: string[], options: TraceViewerServerOptions & { headless?: boolean }, exitOnClose?: boolean) {
   validateTraceUrls(traceUrls);
   const server = await startTraceViewerServer(options);
   await installRootRedirect(server, traceUrls, options);
+  return server;
+}
+
+export async function runTraceViewerApp(traceUrls: string[], browserName: string, options: TraceViewerServerOptions & { headless?: boolean }, exitOnClose?: boolean) {
+  const server = await runTraceViewerServer(traceUrls, options);
   const page = await openTraceViewerApp(server.urlPrefix('precise'), browserName, options);
   if (exitOnClose)
     page.on('close', () => gracefullyProcessExitDoNotHang(0));
@@ -155,9 +164,7 @@ export async function runTraceViewerApp(traceUrls: string[], browserName: string
 }
 
 export async function runTraceInBrowser(traceUrls: string[], options: TraceViewerServerOptions) {
-  validateTraceUrls(traceUrls);
-  const server = await startTraceViewerServer(options);
-  await installRootRedirect(server, traceUrls, options);
+  const server = await runTraceViewerServer(traceUrls, options);
   await openTraceInBrowser(server.urlPrefix('human-readable'));
 }
 

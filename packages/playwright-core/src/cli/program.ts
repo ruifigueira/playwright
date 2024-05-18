@@ -23,7 +23,7 @@ import type { Command } from '../utilsBundle';
 import { program } from '../utilsBundle';
 export { program } from '../utilsBundle';
 import { runDriver, runServer, printApiJson, launchBrowserServer } from './driver';
-import { runTraceInBrowser, runTraceViewerApp } from '../server/trace/viewer/traceViewer';
+import { runTraceInBrowser, runTraceViewerApp, runTraceViewerServer } from '../server/trace/viewer/traceViewer';
 import type { TraceViewerServerOptions } from '../server/trace/viewer/traceViewer';
 import * as playwright from '../..';
 import type { BrowserContext } from '../client/browserContext';
@@ -296,6 +296,7 @@ program
     .option('-h, --host <host>', 'Host to serve trace on; specifying this option opens trace in a browser tab')
     .option('-p, --port <port>', 'Port to serve trace on, 0 for any free port; specifying this option opens trace in a browser tab')
     .option('--stdin', 'Accept trace URLs over stdin to update the viewer')
+    .option('--server-only', 'Run server only')
     .description('show trace viewer')
     .action(function(traces, options) {
       if (options.browser === 'cr')
@@ -309,12 +310,18 @@ program
         host: options.host,
         port: +options.port,
         isServer: !!options.stdin,
+        embedded: !!options.stdin && options.serverOnly,
       };
 
-      if (options.port !== undefined || options.host !== undefined)
+      if (openOptions.embedded) {
+        runTraceViewerServer(traces, openOptions).then(server => {
+          process.stdout.write(server.urlPrefix('precise') + '\n');
+        }).catch(logErrorAndExit);
+      } else if (options.port !== undefined || options.host !== undefined) {
         runTraceInBrowser(traces, openOptions).catch(logErrorAndExit);
-      else
+      } else {
         runTraceViewerApp(traces, options.browser, openOptions, true).catch(logErrorAndExit);
+      }
     }).addHelpText('afterAll', `
 Examples:
 

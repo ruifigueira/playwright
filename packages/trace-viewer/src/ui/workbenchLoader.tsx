@@ -33,6 +33,7 @@ export const WorkbenchLoader: React.FunctionComponent<{
   const [dragOver, setDragOver] = React.useState<boolean>(false);
   const [processingErrorMessage, setProcessingErrorMessage] = React.useState<string | null>(null);
   const [fileForLocalModeError, setFileForLocalModeError] = React.useState<string | null>(null);
+  const [embedded, setEmbedded] = React.useState<boolean>(false);
 
   const processTraceFiles = React.useCallback((files: FileList) => {
     const blobUrls = [];
@@ -74,7 +75,7 @@ export const WorkbenchLoader: React.FunctionComponent<{
     const params = new URL(window.location.href).searchParams;
     const newTraceURLs = params.getAll('trace');
     setIsServer(params.has('isServer'));
-
+    setEmbedded(params.has('embedded'));
     // Don't accept file:// URLs - this means we re opened locally.
     for (const url of newTraceURLs) {
       if (url.startsWith('file:')) {
@@ -138,7 +139,7 @@ export const WorkbenchLoader: React.FunctionComponent<{
   const showFileUploadDropArea = !!(!isServer && !dragOver && !fileForLocalModeError && (!traceURLs.length || processingErrorMessage));
 
   return <div className='vbox workbench-loader' onDragOver={event => { event.preventDefault(); setDragOver(true); }}>
-    <div className='hbox header' {...(showFileUploadDropArea ? { inert: 'true' } : {})}>
+    {!embedded && <div className='hbox header' {...(showFileUploadDropArea ? { inert: 'true' } : {})}>
       <div className='logo'>
         <img src='playwright-logo.svg' alt='Playwright logo' />
       </div>
@@ -146,7 +147,7 @@ export const WorkbenchLoader: React.FunctionComponent<{
       {model.title && <div className='title'>{model.title}</div>}
       <div className='spacer'></div>
       <ToolbarButton icon='color-mode' title='Toggle color mode' toggled={false} onClick={() => toggleTheme()}></ToolbarButton>
-    </div>
+    </div>}
     <div className='progress'>
       <div className='inner-progress' style={{ width: progress.total ? (100 * progress.done / progress.total) + '%' : 0 }}></div>
     </div>

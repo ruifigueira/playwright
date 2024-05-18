@@ -27,10 +27,16 @@ export function applyTheme() {
   document!.defaultView!.addEventListener('blur', event => {
     document.body.classList.add('inactive');
   }, false);
+  window.addEventListener('message', ({ data }) => {
+    if (!data.theme)
+      return;
+    if (currentTheme() !== data.theme)
+      toggleTheme();
+  }, false);
 
-  const currentTheme = settings.getString('theme', 'light-mode');
+  const theme = settings.getString('theme', 'light-mode');
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-  if (currentTheme === 'dark-mode' || prefersDarkScheme.matches)
+  if (theme === 'dark-mode' || prefersDarkScheme.matches)
     document.body.classList.add('dark-mode');
 }
 
