@@ -39,5 +39,26 @@ import { WorkbenchLoader } from './ui/workbenchLoader';
     setInterval(function() { fetch('ping'); }, 10000);
   }
 
+  if (window.parent !== window && new URL(window.location.href).searchParams.has('embedded')) {
+    const handleKeyEvent = (e: KeyboardEvent) => {
+      if (!e.isTrusted)
+        return;
+      window.parent?.postMessage({
+        type: e.type,
+        key: e.key,
+        keyCode: e.keyCode,
+        code: e.code,
+        shiftKey: e.shiftKey,
+        altKey: e.altKey,
+        ctrlKey: e.ctrlKey,
+        metaKey: e.metaKey,
+        repeat: e.repeat,
+      }, '*');
+    };
+
+    window.addEventListener('keydown', handleKeyEvent);
+    window.addEventListener('keyup', handleKeyEvent);
+  }
+
   ReactDOM.render(<WorkbenchLoader/>, document.querySelector('#root'));
 })();
