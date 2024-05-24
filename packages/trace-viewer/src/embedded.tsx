@@ -15,7 +15,7 @@
  */
 
 import '@web/common.css';
-import { applyTheme } from '@web/theme';
+import { applyTheme, currentTheme, toggleTheme } from '@web/theme';
 import '@web/third_party/vscode/codicon.css';
 import React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -23,6 +23,33 @@ import { WorkbenchLoader } from './ui/workbenchLoader';
 
 (async () => {
   applyTheme();
+
+  // must run before awaits
+  window.addEventListener('message', ({ data }) => {
+    if (!data.theme)
+      return;
+    if (currentTheme() !== data.theme)
+      toggleTheme();
+  });
+  // workaround to send keystrokes back to vscode webview to keep triggering key bindings there
+  const handleKeyEvent = (e: KeyboardEvent) => {
+    if (!e.isTrusted)
+      return;
+    window.parent?.postMessage({
+      type: e.type,
+      key: e.key,
+      keyCode: e.keyCode,
+      code: e.code,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+      ctrlKey: e.ctrlKey,
+      metaKey: e.metaKey,
+      repeat: e.repeat,
+    }, '*');
+  };
+  window.addEventListener('keydown', handleKeyEvent);
+  window.addEventListener('keyup', handleKeyEvent);
+
   if (window.location.protocol !== 'file:') {
     if (window.location.href.includes('isUnderTest=true'))
       await new Promise(f => setTimeout(f, 1000));
@@ -39,5 +66,5 @@ import { WorkbenchLoader } from './ui/workbenchLoader';
     setInterval(function() { fetch('ping'); }, 10000);
   }
 
-  ReactDOM.render(<WorkbenchLoader/>, document.querySelector('#root'));
+  ReactDOM.render(<WorkbenchLoader embedded={true} />, document.querySelector('#root'));
 })();

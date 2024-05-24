@@ -310,18 +310,14 @@ program
         host: options.host,
         port: +options.port,
         isServer: !!options.stdin,
-        embedded: !!options.stdin && options.serverOnly,
       };
 
-      if (openOptions.embedded) {
-        runTraceViewerServer(traces, openOptions).then(server => {
-          process.stdout.write(server.urlPrefix('precise') + '\n');
-        }).catch(logErrorAndExit);
-      } else if (options.port !== undefined || options.host !== undefined) {
+      if (options.serverOnly)
+        runTraceViewerServer(traces, openOptions).catch(logErrorAndExit);
+      else if (options.port !== undefined || options.host !== undefined)
         runTraceInBrowser(traces, openOptions).catch(logErrorAndExit);
-      } else {
+      else
         runTraceViewerApp(traces, options.browser, openOptions, true).catch(logErrorAndExit);
-      }
     }).addHelpText('afterAll', `
 Examples:
 

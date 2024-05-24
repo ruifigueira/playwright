@@ -24,7 +24,8 @@ import { Workbench } from './workbench';
 import { TestServerConnection } from '@testIsomorphic/testServerConnection';
 
 export const WorkbenchLoader: React.FunctionComponent<{
-}> = () => {
+  embedded?: boolean
+}> = ({ embedded }) => {
   const [isServer, setIsServer] = React.useState<boolean>(false);
   const [traceURLs, setTraceURLs] = React.useState<string[]>([]);
   const [uploadedTraceNames, setUploadedTraceNames] = React.useState<string[]>([]);
@@ -33,7 +34,6 @@ export const WorkbenchLoader: React.FunctionComponent<{
   const [dragOver, setDragOver] = React.useState<boolean>(false);
   const [processingErrorMessage, setProcessingErrorMessage] = React.useState<string | null>(null);
   const [fileForLocalModeError, setFileForLocalModeError] = React.useState<string | null>(null);
-  const [embedded, setEmbedded] = React.useState<boolean>(false);
 
   const processTraceFiles = React.useCallback((files: FileList) => {
     const blobUrls = [];
@@ -75,7 +75,7 @@ export const WorkbenchLoader: React.FunctionComponent<{
     const params = new URL(window.location.href).searchParams;
     const newTraceURLs = params.getAll('trace');
     setIsServer(params.has('isServer'));
-    setEmbedded(params.has('embedded'));
+
     // Don't accept file:// URLs - this means we re opened locally.
     for (const url of newTraceURLs) {
       if (url.startsWith('file:')) {
