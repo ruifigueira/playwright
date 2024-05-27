@@ -20,6 +20,7 @@ import '@web/third_party/vscode/codicon.css';
 import React from 'react';
 import * as ReactDOM from 'react-dom';
 import { WorkbenchLoader } from './ui/workbenchLoader';
+import { setPopoutFunction } from './ui/popout';
 
 (async () => {
   applyTheme();
@@ -65,6 +66,12 @@ import { WorkbenchLoader } from './ui/workbenchLoader';
     // Keep SW running.
     setInterval(function() { fetch('ping'); }, 10000);
   }
+
+  setPopoutFunction((url: string, target?: string) => {
+    if (!url)
+      return;
+    window.parent.postMessage({ command: 'openExternal', url, target }, '*');
+  });
 
   ReactDOM.render(<WorkbenchLoader embedded={true} />, document.querySelector('#root'));
 })();
