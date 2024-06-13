@@ -69,8 +69,11 @@ body.dark-mode .drop-target {
   flex: none;
   width: 100%;
   height: 3px;
-  margin-top: -3px;
   z-index: 10;
+}
+
+.header + .progress {
+  margin-top: -3px;
 }
 
 .inner-progress {
