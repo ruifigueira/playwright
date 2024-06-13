@@ -73,5 +73,5 @@ import { setPopoutFunction } from './ui/popout';
     window.parent.postMessage({ command: 'openExternal', url, target }, '*');
   });
 
-  ReactDOM.render(<WorkbenchLoader embedded={true} />, document.querySelector('#root'));
+  ReactDOM.render(<WorkbenchLoader hideHeader />, document.querySelector('#root'));
 })();

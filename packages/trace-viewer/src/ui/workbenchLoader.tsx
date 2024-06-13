@@ -24,8 +24,8 @@ import { Workbench } from './workbench';
 import { TestServerConnection } from '@testIsomorphic/testServerConnection';
 
 export const WorkbenchLoader: React.FunctionComponent<{
-  embedded?: boolean
-}> = ({ embedded }) => {
+  hideHeader?: boolean
+}> = ({ hideHeader }) => {
   const [isServer, setIsServer] = React.useState<boolean>(false);
   const [traceURLs, setTraceURLs] = React.useState<string[]>([]);
   const [uploadedTraceNames, setUploadedTraceNames] = React.useState<string[]>([]);
@@ -139,7 +139,7 @@ export const WorkbenchLoader: React.FunctionComponent<{
   const showFileUploadDropArea = !!(!isServer && !dragOver && !fileForLocalModeError && (!traceURLs.length || processingErrorMessage));
 
   return <div className='vbox workbench-loader' onDragOver={event => { event.preventDefault(); setDragOver(true); }}>
-    {!embedded && <div className='hbox header' {...(showFileUploadDropArea ? { inert: 'true' } : {})}>
+    {!hideHeader && <div className='hbox header' {...(showFileUploadDropArea ? { inert: 'true' } : {})}>
       <div className='logo'>
         <img src='playwright-logo.svg' alt='Playwright logo' />
       </div>
