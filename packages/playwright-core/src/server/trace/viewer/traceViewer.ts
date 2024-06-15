@@ -148,7 +148,8 @@ export async function runTraceViewerServer(traceUrls: string[], options: TraceVi
   validateTraceUrls(traceUrls);
   const server = await startTraceViewerServer(options);
   await installRootRedirect(server, traceUrls, { ...options, webApp: 'embedded.html' });
-  process.stdout.write(server.urlPrefix('precise') + '\n');
+  const url = server.urlPrefix('human-readable').replace('0.0.0.0', 'localhost');
+  process.stdout.write(url + '\n');
   return server;
 }
 
