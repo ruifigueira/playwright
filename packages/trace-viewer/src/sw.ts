@@ -15,9 +15,9 @@
  */
 
 import { splitProgress } from './progress';
-import { unwrapPopoutUrl } from './snapshotRenderer';
-import { SnapshotServer } from './snapshotServer';
-import { TraceModel } from './traceModel';
+import { unwrapPopoutUrl } from '@isomorphic/trace/snapshotRenderer';
+import { SnapshotServer } from '@isomorphic/trace/snapshotServer';
+import { TraceModel } from '@isomorphic/trace/traceModel';
 import { FetchTraceModelBackend, ZipTraceModelBackend } from './traceModelBackends';
 
 // @ts-ignore

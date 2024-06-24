@@ -15,7 +15,7 @@
  */
 
 import type * as trace from '@trace/trace';
-import { parseClientSideCallMetadata } from '../../../packages/playwright-core/src/utils/isomorphic/traceUtils';
+import { parseClientSideCallMetadata } from './traceUtils';
 import type { ContextEntry } from './entries';
 import { createEmptyContext } from './entries';
 import { SnapshotStorage } from './snapshotStorage';

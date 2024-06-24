@@ -17,7 +17,7 @@
 import type zip from '@zip.js/zip.js';
 // @ts-ignore
 import * as zipImport from '@zip.js/zip.js/lib/zip-no-worker-inflate.js';
-import type { TraceModelBackend } from './traceModel';
+import type { TraceModelBackend } from '@isomorphic/trace/traceModel';
 
 const zipjs = zipImport as typeof zip;
 
