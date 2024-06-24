@@ -49,6 +49,11 @@ export class ZipFile {
     return [...this._entries.keys()];
   }
 
+  async has(entry: string): Promise<boolean> {
+    await this._openedPromise;
+    return this._entries.has(entry);
+  }
+
   async read(entryPath: string): Promise<Buffer> {
     await this._openedPromise;
     const entry = this._entries.get(entryPath)!;

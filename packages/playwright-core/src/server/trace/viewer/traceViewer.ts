@@ -27,6 +27,11 @@ import { open } from '../../../utilsBundle';
 import type { Page } from '../../page';
 import type { BrowserType } from '../../browserType';
 import { launchApp } from '../../launchApp';
+import type { TraceModelBackend } from '../../../utils/isomorphic/trace/traceModel';
+import { TraceModel } from '../../../utils/isomorphic/trace/traceModel';
+import { ZipTraceModelBackend, LiveTraceModelBackend } from './serverTraceModelBackends';
+import { SnapshotServer } from '../../../utils/isomorphic/trace/snapshotServer';
+import type { IncomingMessage, ServerResponse } from 'http';
 
 export type TraceViewerServerOptions = {
   host?: string;
@@ -66,6 +71,32 @@ function validateTraceUrls(traceUrls: string[]) {
   }
 }
 
+const loadedTraces = new Map<string, { traceModel: TraceModel, snapshotServer: SnapshotServer }>();
+
+async function loadTrace(traceUrl: string, traceFileName: string | null): Promise<TraceModel> {
+  const traceModel = new TraceModel();
+  let backend: TraceModelBackend;
+  try {
+    if (traceUrl.endsWith('.json')) {
+      backend = new LiveTraceModelBackend(traceUrl);
+    } else {
+      // Allow 10% to hop from sw to page.
+      backend = new ZipTraceModelBackend(traceUrl, () => {});
+      await traceModel.load(backend, () => {});
+    }
+  } catch (error: any) {
+    if (error?.message?.includes('Cannot find .trace file') && await traceModel.hasEntry('index.html'))
+      throw new Error('Could not load trace. Did you upload a Playwright HTML report instead? Make sure to extract the archive first and then double-click the index.html file or put it on a web server.');
+    if (traceFileName)
+      throw new Error(`Could not load trace from ${traceFileName}. Make sure to upload a valid Playwright trace.`);
+    throw new Error(`Could not load trace from ${traceUrl}. Make sure a valid Playwright Trace is accessible over this url.`);
+  }
+  const snapshotServer = new SnapshotServer(traceModel.storage(), sha1 => traceModel.resourceForSha1(sha1));
+  loadedTraces.set(traceUrl, { traceModel, snapshotServer });
+  return traceModel;
+}
+
+
 export async function startTraceViewerServer(options?: TraceViewerServerOptions): Promise<HttpServer> {
   const server = new HttpServer();
   server.routePrefix('/trace', (request, response) => {
@@ -93,6 +124,70 @@ export async function startTraceViewerServer(options?: TraceViewerServerOptions)
       response.end();
       return true;
     }
+
+    const traceUrl = url.searchParams.get('trace');
+
+    if (relativePath.startsWith('/contexts')) {
+      loadTrace(traceUrl!, url.searchParams.get('traceFileName')).then(traceModel => {
+        response.statusCode = 200;
+        response.setHeader('Content-Type', 'application/json');
+        response.end(JSON.stringify(traceModel!.contextEntries));
+      }).catch(error => {
+        response.statusCode = 500;
+        response.setHeader('Content-Type', 'application/json');
+        response.end(JSON.stringify({ error: error?.message }));
+      });
+      return true;
+    }
+
+    if (relativePath.startsWith('/snapshotInfo/')) {
+      const { snapshotServer } = loadedTraces.get(traceUrl!) || {};
+      if (!snapshotServer) {
+        response.statusCode = 404;
+        response.end();
+      } else {
+        const resp = snapshotServer.serveSnapshotInfo(relativePath, url.searchParams);
+        populateResponse(resp, response);
+      }
+      return true;
+    }
+
+    if (relativePath.startsWith('/snapshot/')) {
+      const { snapshotServer } = loadedTraces.get(traceUrl!) || {};
+      if (!snapshotServer) {
+        response.statusCode = 404;
+        response.end();
+      } else {
+        const resp = snapshotServer.serveSnapshot(relativePath, url.searchParams, url.href);
+        populateResponse(resp, response);
+      }
+      return true;
+    }
+
+    if (relativePath.startsWith('/sha1/')) {
+      // Sha1 for sources is based on the file path, can't load it of a random model.
+      const sha1 = relativePath.slice('/sha1/'.length);
+      (async () => {
+        let sent = false;
+        for (const trace of loadedTraces.values()) {
+          const blob = await trace.traceModel.resourceForSha1(sha1);
+          if (blob) {
+            const buffer = Buffer.from(await blob.arrayBuffer());
+            response.statusCode = 200;
+            response.end(buffer);
+            sent = true;
+            break;
+          }
+        }
+
+        if (!sent) {
+          response.statusCode = 404;
+          response.end();
+        }
+      })();
+      return true;
+    }
+
     const absolutePath = path.join(__dirname, '..', '..', '..', 'vite', 'traceViewer', ...relativePath.split('/'));
     return server.serveFile(request, response, absolutePath);
   });
@@ -104,6 +199,17 @@ export async function startTraceViewerServer(options?: TraceViewerServerOptions)
   const { host, port } = options || {};
   await server.start({ preferredPort: port, host });
   return server;
+}
+
+function populateResponse(resp: Response, response: ServerResponse<IncomingMessage>) {
+  response.statusCode = resp.status;
+  response.statusMessage = resp.statusText;
+  for (const [key, value] of resp.headers)
+    response.setHeader(key, value);
+  const contentType = resp.headers.get('Content-Type');
+
+  (contentType?.startsWith('application/json') || contentType?.startsWith('text/') ? resp.text() : resp.arrayBuffer().then(ab => Buffer.from(ab)))
+      .then(body => response.end(body));
 }
 
 export async function installRootRedirect(server: HttpServer, traceUrls: string[], options: TraceViewerRedirectOptions) {
@@ -147,7 +253,7 @@ export async function installRootRedirect(server: HttpServer, traceUrls: string[
 export async function runTraceViewerServer(traceUrls: string[], options: TraceViewerServerOptions & { headless?: boolean }, exitOnClose?: boolean) {
   validateTraceUrls(traceUrls);
   const server = await startTraceViewerServer(options);
-  await installRootRedirect(server, traceUrls, { ...options, webApp: 'embedded.html' });
+  await installRootRedirect(server, traceUrls, options);
   const url = server.urlPrefix('human-readable').replace('0.0.0.0', 'localhost');
   process.stdout.write(url + '\n');
   return server;

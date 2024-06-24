@@ -15,7 +15,7 @@
  */
 
 import type { ClientSideCallMetadata } from '@protocol/channels';
-import type { SerializedClientSideCallMetadata, SerializedStack, SerializedStackFrame } from './isomorphic/traceUtils';
+import type { SerializedClientSideCallMetadata, SerializedStack, SerializedStackFrame } from './isomorphic/trace/traceUtils';
 
 export function serializeClientSideCallMetadata(metadatas: ClientSideCallMetadata[]): SerializedClientSideCallMetadata {
   const fileNames = new Map<string, number>();

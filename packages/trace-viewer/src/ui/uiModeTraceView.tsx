@@ -21,7 +21,7 @@ import '@web/common.css';
 import '@web/third_party/vscode/codicon.css';
 import type * as reporterTypes from 'playwright/types/testReporter';
 import React from 'react';
-import type { ContextEntry } from '../entries';
+import type { ContextEntry } from '@isomorphic/trace/entries';
 import type { SourceLocation } from './modelUtil';
 import { idForAction, MultiTraceModel } from './modelUtil';
 import { Workbench } from './workbench';
