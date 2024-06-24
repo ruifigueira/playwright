@@ -25,3 +25,7 @@ export function popout(url: string, target?: string): Window | undefined {
   const win = popoutFn(url, target);
   return win instanceof Window ? win : undefined;
 }
+
+export function baseUrl() {
+  return document.getElementsByTagName('base')[0]?.href ?? window.location.href;
+}

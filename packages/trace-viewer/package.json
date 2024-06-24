@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "vite build && tsc",
     "build-sw": "vite --config vite.sw.config.ts build && tsc",
+    "build-embedded": "vite --config vite.embedded.config.ts build && tsc",
     "preview": "vite preview"
   }
 }

@@ -29,7 +29,7 @@ import type { Language } from '@isomorphic/locatorGenerators';
 import { locatorOrSelectorAsSelector } from '@isomorphic/locatorParser';
 import { TabbedPaneTab } from '@web/components/tabbedPane';
 import { BrowserFrame } from './browserFrame';
-import { popout } from './popout';
+import { baseUrl, popout } from './utils';
 
 export const SnapshotTab: React.FunctionComponent<{
   action: ActionTraceEvent | undefined,
@@ -74,8 +74,9 @@ export const SnapshotTab: React.FunctionComponent<{
       params.set('pointX', String(snapshot.point.x));
       params.set('pointY', String(snapshot.point.y));
     }
-    const snapshotUrl = new URL(`snapshot/${snapshot.action.pageId}?${params.toString()}`, window.location.href).toString();
-    const snapshotInfoUrl = new URL(`snapshotInfo/${snapshot.action.pageId}?${params.toString()}`, window.location.href).toString();
+    const base = baseUrl();
+    const snapshotUrl = new URL(`snapshot/${snapshot.action.pageId}?${params.toString()}`, base).toString();
+    const snapshotInfoUrl = new URL(`snapshotInfo/${snapshot.action.pageId}?${params.toString()}`, base).toString();
 
     const popoutParams = new URLSearchParams();
     popoutParams.set('r', snapshotUrl);
@@ -84,8 +85,9 @@ export const SnapshotTab: React.FunctionComponent<{
       popoutParams.set('pointX', String(snapshot.point.x));
       popoutParams.set('pointY', String(snapshot.point.y));
     }
-    const popoutUrl = new URL(`snapshot.html?${popoutParams.toString()}`, window.location.href).toString();
-    return { snapshots, snapshotInfoUrl, snapshotUrl, popoutUrl };
+    const popoutUrl = new URL(`snapshot.html?${popoutParams.toString()}`, base).toString();
+    // if base URL is not the window location, it means it's embedded in vscode
+    return { snapshots, snapshotInfoUrl, snapshotUrl: base === window.location.href ? snapshotUrl : popoutUrl, popoutUrl };
   }, [snapshots, snapshotTab]);
 
   const iframeRef0 = React.useRef<HTMLIFrameElement>(null);
